@@ -1,0 +1,36 @@
+/* Default (SSR / no JS / reduced motion): fully present. Never blank.
+   Selectors ordered by ascending specificity (no-descending-specificity). */
+.reveal {
+  opacity: 1;
+}
+
+/* Editorial stagger — delay anchored to a motion token, not a raw value. */
+.d1 {
+  transition-delay: calc(var(--duration-instant) * 0);
+}
+
+.d2 {
+  transition-delay: calc(var(--duration-instant) * 1);
+}
+
+.d3 {
+  transition-delay: calc(var(--duration-instant) * 2);
+}
+
+.d4 {
+  transition-delay: calc(var(--duration-instant) * 3);
+}
+
+/* Hidden state exists ONLY while JS has armed it. */
+.reveal[data-armed='true'] {
+  opacity: 0;
+  transform: translateY(var(--space-s3));
+  transition-property: opacity, transform;
+  transition-duration: var(--duration-medium);
+  transition-timing-function: var(--ease-authority);
+}
+
+.reveal[data-armed='true'][data-shown='true'] {
+  opacity: 1;
+  transform: none;
+}

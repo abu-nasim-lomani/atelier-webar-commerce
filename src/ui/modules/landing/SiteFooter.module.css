@@ -1,0 +1,7 @@
+.footer {
+  padding-block-end: var(--space-s8);
+}
+
+.inner {
+  padding-block-start: var(--space-s6);
+}

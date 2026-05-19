@@ -1,0 +1,43 @@
+{
+  "name": "atelier-webar-commerce",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cinematic WebAR furniture commerce — production scaffold (Phase A1)",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "pnpm tokens:build && next build",
+    "start": "next start",
+    "tokens:build": "tsx src/tokens/generate-css.ts",
+    "tokens:check": "tsx src/tokens/generate-css.ts --check",
+    "lint": "eslint . --max-warnings=0",
+    "lint:css": "stylelint \"src/**/*.css\"",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "verify": "pnpm typecheck && pnpm lint && pnpm lint:css && pnpm tokens:check"
+  },
+  "dependencies": {
+    "next": "15.0.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.16.11",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.0",
+    "@typescript-eslint/eslint-plugin": "8.8.1",
+    "@typescript-eslint/parser": "8.8.1",
+    "eslint": "9.12.0",
+    "eslint-config-next": "15.0.3",
+    "eslint-plugin-boundaries": "5.0.1",
+    "prettier": "3.3.3",
+    "stylelint": "16.9.0",
+    "stylelint-config-standard": "36.0.1",
+    "stylelint-declaration-strict-value": "1.10.6",
+    "tsx": "4.19.1",
+    "typescript": "5.6.3"
+  }
+}

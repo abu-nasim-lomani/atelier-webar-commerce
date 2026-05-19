@@ -1,0 +1,32 @@
+.container {
+  inline-size: 100%;
+  margin-inline: auto;
+  padding-inline: var(--space-s5);
+}
+
+/* Reading measure — narrow, for editorial prose. */
+.text {
+  max-inline-size: 38rem;
+}
+
+.default {
+  max-inline-size: 64rem;
+}
+
+.wide {
+  max-inline-size: 80rem;
+}
+
+/* Breathing-space expansion. Media-query bounds intentionally mirror the
+   `breakpoint` tokens (CSS media params cannot reference custom properties). */
+@media (width >= 768px) {
+  .container {
+    padding-inline: var(--space-s7);
+  }
+}
+
+@media (width >= 1024px) {
+  .container {
+    padding-inline: var(--space-s8);
+  }
+}

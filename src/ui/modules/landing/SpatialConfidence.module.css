@@ -1,0 +1,13 @@
+.row {
+  display: grid;
+  gap: var(--space-s2);
+}
+
+/* Editorial two-column rhythm on wider canvases. */
+@media (width >= 768px) {
+  .row {
+    grid-template-columns: 14rem 1fr;
+    gap: var(--space-s7);
+    align-items: baseline;
+  }
+}

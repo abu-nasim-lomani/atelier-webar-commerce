@@ -1,0 +1,28 @@
+.headline {
+  max-inline-size: 14ch;
+}
+
+.lede {
+  max-inline-size: 34ch;
+}
+
+/* Quiet framed space that will become the product stage. Transparent by
+   design so the persistent canvas (Phase B) is visible through it. */
+.stage {
+  margin-block-start: var(--space-s8);
+  margin-inline: var(--space-s5);
+  block-size: 36svh;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-r-lg);
+}
+
+@media (width >= 768px) {
+  .headline {
+    max-inline-size: 16ch;
+  }
+
+  .stage {
+    block-size: 44svh;
+    margin-inline: var(--space-s7);
+  }
+}

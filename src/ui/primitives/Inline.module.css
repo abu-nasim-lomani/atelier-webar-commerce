@@ -1,0 +1,33 @@
+.inline {
+  display: flex;
+  flex-direction: row;
+  gap: var(--inline-gap);
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.a-start {
+  align-items: flex-start;
+}
+
+.a-center {
+  align-items: center;
+}
+
+.a-baseline {
+  align-items: baseline;
+}
+
+.j-start {
+  justify-content: flex-start;
+}
+
+.j-center {
+  justify-content: center;
+}
+
+.j-between {
+  justify-content: space-between;
+}

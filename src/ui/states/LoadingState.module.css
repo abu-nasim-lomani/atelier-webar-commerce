@@ -1,0 +1,29 @@
+.screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 100svh;
+  text-align: center;
+}
+
+.mark {
+  opacity: 0.9;
+}
+
+/* Faint breathing — additive only. Stillness under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .mark {
+    animation: breathe var(--duration-ambient) var(--ease-calm) infinite;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

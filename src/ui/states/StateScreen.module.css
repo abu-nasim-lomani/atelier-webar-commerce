@@ -1,0 +1,10 @@
+.screen {
+  display: flex;
+  align-items: center;
+  min-block-size: 70svh;
+  padding-block: var(--space-s9);
+}
+
+.action {
+  margin-block-start: var(--space-s3);
+}

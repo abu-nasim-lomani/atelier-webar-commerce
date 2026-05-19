@@ -1,0 +1,89 @@
+.text {
+  margin: 0;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+  letter-spacing: var(--type-body-tracking);
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-ink);
+  text-wrap: pretty;
+}
+
+/* Editorial serif voice — display tier + headline. */
+.displayXl,
+.displayL,
+.headline {
+  font-family: var(--font-display);
+}
+
+.displayXl {
+  font-size: var(--type-display-xl-size);
+  line-height: var(--type-display-xl-lh);
+  letter-spacing: var(--type-display-xl-tracking);
+  text-wrap: balance;
+}
+
+.displayL {
+  font-size: var(--type-display-l-size);
+  line-height: var(--type-display-l-lh);
+  letter-spacing: var(--type-display-l-tracking);
+  text-wrap: balance;
+}
+
+.headline {
+  font-size: var(--type-headline-size);
+  line-height: var(--type-headline-lh);
+  letter-spacing: var(--type-headline-tracking);
+  text-wrap: balance;
+}
+
+/* Grotesque UI tier. */
+.title {
+  font-size: var(--type-title-size);
+  line-height: var(--type-title-lh);
+  letter-spacing: var(--type-title-tracking);
+  font-weight: var(--font-weight-medium);
+}
+
+.bodyL {
+  font-size: var(--type-body-l-size);
+  line-height: var(--type-body-l-lh);
+  letter-spacing: var(--type-body-l-tracking);
+}
+
+.body {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+  letter-spacing: var(--type-body-tracking);
+}
+
+.caption {
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-lh);
+  letter-spacing: var(--type-caption-tracking);
+}
+
+.overline {
+  font-size: var(--type-overline-size);
+  line-height: var(--type-overline-lh);
+  letter-spacing: var(--type-overline-tracking);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+}
+
+/* Semantic tones — never raw colour. */
+.ink {
+  color: var(--color-ink);
+}
+
+.inkSoft {
+  color: var(--color-ink-soft);
+}
+
+.inkMuted {
+  color: var(--color-ink-muted);
+}
+
+.accent {
+  color: var(--color-accent);
+}

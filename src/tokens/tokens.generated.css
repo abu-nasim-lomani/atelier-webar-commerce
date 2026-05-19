@@ -1,0 +1,109 @@
+/**
+ * AUTO-GENERATED — DO NOT EDIT BY HAND.
+ * Source of truth: src/tokens/*.ts · regenerate with `pnpm tokens:build`.
+ */
+
+:root {
+  /* Colour — neutral spine + accent */
+  --color-canvas: #F3EEE7;
+  --color-canvas-raised: #FAF6EF;
+  --color-canvas-sunk: #E9E2D6;
+  --color-line: #DAD1C3;
+  --color-line-strong: #C7BCAA;
+  --color-ink-muted: #948A79;
+  --color-ink-soft: #6B6253;
+  --color-ink: #2B2620;
+  --color-accent: #B05A38;
+  --color-accent-press: #964A2D;
+  --color-accent-wash: #EFE2D9;
+  --color-confirm: #6E7A57;
+  --color-caution: #B98336;
+  --color-alert: #9B4A38;
+
+  /* AR / cinematic overlay (separate namespace) */
+  --ar-scrim: rgba(43, 38, 32, 0.4);
+  --ar-scrim-soft: rgba(43, 38, 32, 0.22);
+  --ar-surface: rgba(250, 246, 239, 0.86);
+
+  /* Elevation — UI shadows only */
+  --elevation-none: none;
+  --elevation-e1: 0 1px 2px rgba(42, 31, 22, 0.04), 0 8px 24px rgba(42, 31, 22, 0.05);
+  --elevation-e2: 0 2px 8px rgba(42, 31, 22, 0.05), 0 16px 40px rgba(42, 31, 22, 0.07);
+
+  /* Space — 4pt base */
+  --space-s1: 4px;
+  --space-s2: 8px;
+  --space-s3: 12px;
+  --space-s4: 16px;
+  --space-s5: 24px;
+  --space-s6: 32px;
+  --space-s7: 48px;
+  --space-s8: 64px;
+  --space-s9: 96px;
+  --space-s10: 128px;
+
+  /* Radius */
+  --radius-r0: 0;
+  --radius-r-sm: 2px;
+  --radius-r-md: 12px;
+  --radius-r-lg: 16px;
+  --radius-r-xl: 24px;
+  --radius-r-pill: 9999px;
+
+  /* Touch ergonomics */
+  --touch-min: 48px;
+  --touch-primary: 56px;
+  --touch-thumb-zone: 120px;
+
+  /* Typography */
+  --font-display: var(--font-display-face, 'Fraunces'), 'Georgia', 'Times New Roman', serif;
+  --font-text: var(--font-text-face, system-ui), -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --type-display-xl-size: clamp(2.5rem, 11vw, 3.5rem);
+  --type-display-xl-lh: 1.04;
+  --type-display-xl-tracking: -0.02em;
+  --type-display-l-size: 2.125rem;
+  --type-display-l-lh: 1.10;
+  --type-display-l-tracking: -0.015em;
+  --type-headline-size: 1.625rem;
+  --type-headline-lh: 1.18;
+  --type-headline-tracking: -0.01em;
+  --type-title-size: 1.25rem;
+  --type-title-lh: 1.25;
+  --type-title-tracking: 0em;
+  --type-body-l-size: 1.0625rem;
+  --type-body-l-lh: 1.55;
+  --type-body-l-tracking: 0em;
+  --type-body-size: 0.9375rem;
+  --type-body-lh: 1.55;
+  --type-body-tracking: 0em;
+  --type-caption-size: 0.8125rem;
+  --type-caption-lh: 1.40;
+  --type-caption-tracking: 0.005em;
+  --type-overline-size: 0.75rem;
+  --type-overline-lh: 1.30;
+  --type-overline-tracking: 0.08em;
+
+  /* Motion */
+  --ease-authority: cubic-bezier(0.16, 1, 0.30, 1);
+  --ease-calm: cubic-bezier(0.33, 0, 0.10, 1);
+  --ease-response: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-exit: cubic-bezier(0.40, 0, 1, 1);
+  --duration-instant: 80ms;
+  --duration-micro: 160ms;
+  --duration-short: 280ms;
+  --duration-medium: 560ms;
+  --duration-cinematic: 1000ms;
+  --duration-ambient: 9000ms;
+
+  /* Z-index hierarchy */
+  --z-stage: 0;
+  --z-content: 10;
+  --z-nav: 20;
+  --z-sheet: 30;
+  --z-action-bar: 40;
+  --z-scrim: 50;
+  --z-overlay: 60;
+  --z-modal: 70;
+}

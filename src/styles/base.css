@@ -1,0 +1,37 @@
+/**
+ * Base element styling — token-driven only.
+ *
+ * Establishes the warm canvas, the typographic voice, and the safe-area custom
+ * properties. No component styling here.
+ */
+
+:root {
+  /* Safe-area passthrough (notches / gesture bars). Components reference these
+     rather than calling env() directly. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+html,
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+}
+
+/* Tabular numerals everywhere numbers carry meaning — enforces the locked
+   "price/dimensions never jitter" rule at the type layer. */
+[data-numeric] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+::selection {
+  background-color: var(--color-accent-wash);
+  color: var(--color-ink);
+}

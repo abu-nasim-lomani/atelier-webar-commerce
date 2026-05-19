@@ -1,0 +1,21 @@
+.shell {
+  position: relative;
+  min-height: 100dvh;
+  isolation: isolate;
+}
+
+/* The persistent canvas layer. Fixed, behind all DOM, reserved for Phase B. */
+.canvasSlot {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-stage);
+  pointer-events: none;
+}
+
+/* DOM UI composited above the canvas, with safe-area insets honoured. */
+.content {
+  position: relative;
+  z-index: var(--z-content);
+  min-height: 100dvh;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
