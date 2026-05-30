@@ -14,8 +14,12 @@ export function ClosingCta(): ReactElement {
               When you can see it, you can be sure.
             </Text>
             <Inline gap="s4" wrap>
-              <Button variant="primary">Explore the collection</Button>
-              <Button variant="text">How it works</Button>
+              <Button variant="primary" href="/product/hero-sofa">
+                Explore the collection
+              </Button>
+              <Button variant="text" href="#how-it-works">
+                How it works
+              </Button>
             </Inline>
           </Stack>
         </Reveal>

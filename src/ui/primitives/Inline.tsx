@@ -1,7 +1,7 @@
 /**
  * Inline — horizontal layout primitive. Gap is a spacing token, never raw.
  */
-import type { ElementType, ReactElement } from 'react';
+import { createElement, type ElementType, type ReactElement } from 'react';
 import type { SpaceToken } from '@/tokens';
 import type { PolymorphicProps, StyleVars } from '@/types';
 import { spaceVar } from '@/tokens';
@@ -33,17 +33,15 @@ export function Inline<TElement extends ElementType = 'div'>({
 }): ReactElement {
   const Component: ElementType = as ?? 'div';
   const merged: StyleVars = { ...style, '--inline-gap': spaceVar(gap) };
-  return (
-    <Component
-      className={cx(
-        styles.inline,
-        styles[`a-${align}`],
-        styles[`j-${justify}`],
-        wrap && styles.wrap,
-        className,
-      )}
-      style={merged}
-      {...rest}
-    />
-  );
+  return createElement(Component, {
+    className: cx(
+      styles.inline,
+      styles[`a-${align}`],
+      styles[`j-${justify}`],
+      wrap && styles.wrap,
+      className,
+    ),
+    style: merged,
+    ...rest,
+  });
 }

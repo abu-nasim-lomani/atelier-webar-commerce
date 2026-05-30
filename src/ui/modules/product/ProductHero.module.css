@@ -1,0 +1,22 @@
+.name {
+  max-inline-size: 22ch;
+}
+
+.tagline {
+  max-inline-size: 34ch;
+}
+
+.stage {
+  margin-block-start: var(--space-s7);
+  margin-inline: var(--space-s5);
+  block-size: 44svh;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-r-lg);
+}
+
+@media (width >= 768px) {
+  .stage {
+    block-size: 56svh;
+    margin-inline: var(--space-s7);
+  }
+}

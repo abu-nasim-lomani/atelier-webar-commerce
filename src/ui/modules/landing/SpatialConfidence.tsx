@@ -26,7 +26,7 @@ const ORDER = [2, 3, 4] as const;
 
 export function SpatialConfidence(): ReactElement {
   return (
-    <Section label="Confidence">
+    <Section id="how-it-works" label="Confidence">
       <Container>
         <Stack gap="s7">
           <Reveal>

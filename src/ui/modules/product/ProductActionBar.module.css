@@ -1,0 +1,45 @@
+.bar {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: var(--z-action-bar);
+  display: flex;
+  justify-content: center;
+  padding: var(--space-s4) var(--space-s5);
+  padding-block-end: calc(var(--space-s4) + var(--safe-bottom));
+  background-color: var(--color-canvas-raised);
+  box-shadow: var(--elevation-e1);
+  pointer-events: auto;
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--touch-primary);
+  padding: 0 var(--space-s6);
+  border-radius: var(--radius-r-md);
+  background-color: var(--color-accent);
+  color: var(--color-canvas-raised);
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+  letter-spacing: var(--type-body-tracking);
+  text-decoration: none;
+  transition:
+    transform var(--duration-instant) var(--ease-response),
+    background-color var(--duration-micro) var(--ease-calm);
+}
+
+.primary:active {
+  background-color: var(--color-accent-press);
+  transform: scale(0.98);
+}
+
+@media (width >= 768px) {
+  .bar {
+    justify-content: flex-end;
+    padding-inline-end: var(--space-s8);
+  }
+}

@@ -10,6 +10,7 @@ export { elevation } from './elevation';
 export { hexToLinear, type LinearRGB } from './colorSpace';
 export { spaceVar, radiusVar } from './vars';
 export {
+  palette,
   space,
   radius,
   touch,
@@ -18,6 +19,7 @@ export {
   fontWeight,
   typeScale,
   easing,
+  easingPoints,
   duration,
   zIndex,
 } from './primitive';

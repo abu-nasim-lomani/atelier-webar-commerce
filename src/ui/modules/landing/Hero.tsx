@@ -33,16 +33,21 @@ export function Hero(): ReactElement {
           </Reveal>
           <Reveal order={4}>
             <Inline gap="s4" wrap>
-              <Button variant="primary">Explore the collection</Button>
-              <Button variant="text">How it works</Button>
+              <Button variant="primary" href="/product/hero-sofa">
+                Explore the collection
+              </Button>
+              <Button variant="text" href="#how-it-works">
+                How it works
+              </Button>
             </Inline>
           </Reveal>
         </Stack>
       </Container>
 
-      {/* Reserved stage region — intentionally quiet negative space.
-          No opaque background: the future persistent canvas renders here. */}
-      <div className={styles.stage} aria-hidden="true" />
+      {/* The product stage. The persistent canvas renders the hero piece
+          ONLY within this rect (render/StageView scissors to it). Transparent
+          so the 3D shows through; decorative for the a11y tree. */}
+      <div className={styles.stage} aria-hidden="true" data-render-stage="" />
     </Section>
   );
 }

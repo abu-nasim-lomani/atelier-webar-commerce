@@ -1,0 +1,22 @@
+.list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-s4);
+}
+
+.item {
+  display: grid;
+  gap: var(--space-s4);
+}
+
+@media (width >= 768px) {
+  .list {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-s6);
+  }
+
+  /* Separation becomes space, not a line, at wider widths. */
+  .rule {
+    display: none;
+  }
+}

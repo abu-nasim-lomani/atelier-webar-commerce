@@ -32,3 +32,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# raw 3D source assets (downloaded models before optimisation) — heavy and
+# unneeded in git; only the optimised GLB in public/models/ is committed.
+/assets-pipeline/source/

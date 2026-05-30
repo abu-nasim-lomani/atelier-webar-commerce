@@ -3,6 +3,10 @@
 /**
  * useReveal — quiet on-enter reveal.
  *
+ * Exposes a CALLBACK ref (not a RefObject) on purpose: a function ref is
+ * uniformly assignable to a DOM `ref` across every @types/react version, so
+ * this stays correct independent of React-types resolution.
+ *
  * Progressive enhancement, by design:
  *  - SSR / no JS  → never armed → content fully visible (the calm floor).
  *  - reduced motion → never armed → visible immediately, no transition.
@@ -11,21 +15,25 @@
  * The hook never hides content on its own; the hidden state exists ONLY while
  * armed, so a failure mode is always "visible", never "blank".
  */
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface RevealState<T extends HTMLElement> {
-  readonly ref: RefObject<T>;
+  readonly ref: (node: T | null) => void;
   readonly armed: boolean;
   readonly shown: boolean;
 }
 
 export function useReveal<T extends HTMLElement = HTMLDivElement>(): RevealState<T> {
-  const ref = useRef<T>(null);
+  const nodeRef = useRef<T | null>(null);
   const [armed, setArmed] = useState(false);
   const [shown, setShown] = useState(false);
 
+  const ref = useCallback((node: T | null) => {
+    nodeRef.current = node;
+  }, []);
+
   useEffect(() => {
-    const el = ref.current;
+    const el = nodeRef.current;
     if (el === null) return;
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

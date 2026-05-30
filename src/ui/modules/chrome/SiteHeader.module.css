@@ -1,0 +1,18 @@
+.header {
+  padding-block: var(--space-s4);
+}
+
+.brand {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.link {
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  transition: color var(--duration-micro) var(--ease-calm);
+}
+
+.link:hover {
+  color: var(--color-ink);
+}

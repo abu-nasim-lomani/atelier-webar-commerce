@@ -1,0 +1,3 @@
+.actionBarSpacer {
+  block-size: calc(var(--touch-primary) + var(--space-s8) + var(--safe-bottom));
+}

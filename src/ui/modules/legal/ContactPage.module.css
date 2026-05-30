@@ -1,0 +1,32 @@
+/* The single filled action — mirrors the Button primary (accent on canvas). */
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  min-height: var(--touch-primary);
+  padding: 0 var(--space-s6);
+  border-radius: var(--radius-r-md);
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+  color: var(--color-canvas-raised);
+  background-color: var(--color-accent);
+  text-decoration: none;
+  transition: background-color var(--duration-micro) var(--ease-calm);
+}
+
+.primary:active {
+  background-color: var(--color-accent-press);
+}
+
+.link {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--duration-micro) var(--ease-calm);
+}
+
+.link:hover {
+  color: var(--color-accent-press);
+}

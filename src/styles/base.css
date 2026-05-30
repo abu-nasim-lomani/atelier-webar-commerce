@@ -24,6 +24,14 @@ body {
   line-height: var(--type-body-lh);
 }
 
+/* Smooth scrolling for in-page anchor links (e.g. "How it works") — gentle, and
+   only when the visitor has not requested reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Tabular numerals everywhere numbers carry meaning — enforces the locked
    "price/dimensions never jitter" rule at the type layer. */
 [data-numeric] {

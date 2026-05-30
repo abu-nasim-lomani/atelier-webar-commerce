@@ -124,6 +124,18 @@ export const easing = {
   exit: 'cubic-bezier(0.40, 0, 1, 1)',
 } as const;
 
+/**
+ * Numeric control points for the same curves — the typed channel for JS/render
+ * motion math (the CSS `easing` strings above are the CSS channel). These MUST
+ * mirror `easing` exactly; they are NOT emitted to tokens.generated.css.
+ */
+export const easingPoints = {
+  authority: [0.16, 1, 0.3, 1],
+  calm: [0.33, 0, 0.1, 1],
+  response: [0.22, 1, 0.36, 1],
+  exit: [0.4, 0, 1, 1],
+} as const;
+
 /** Durations in milliseconds. */
 export const duration = {
   instant: 80,

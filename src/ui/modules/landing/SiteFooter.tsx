@@ -1,14 +1,20 @@
 /**
  * SiteFooter — quiet utility. Minimal by intent; no link dump.
  *
- * The labels are rendered as plain text, not links: their routes do not exist
- * yet (later phases). Honest over a dead `href="#"`.
+ * Links point at routes that now exist (the product + the legal/trust pages).
  */
 import type { ReactElement } from 'react';
+import Link from 'next/link';
 import { Container, Stack, Inline, Text, Divider } from '@/ui/primitives';
 import styles from './SiteFooter.module.css';
 
-const LINKS = ['The collection', 'How it works', 'Showroom', 'Contact'] as const;
+const LINKS = [
+  { label: 'The Sofa', href: '/product/hero-sofa' },
+  { label: 'Returns & delivery', href: '/returns' },
+  { label: 'Contact', href: '/contact' },
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
+] as const;
 
 export function SiteFooter(): ReactElement {
   return (
@@ -19,15 +25,20 @@ export function SiteFooter(): ReactElement {
           <Inline justify="between" align="baseline" wrap gap="s6">
             <Text variant="title">Atelier</Text>
             <Inline wrap gap="s6">
-              {LINKS.map((link) => (
-                <Text key={link} variant="caption" tone="inkMuted">
-                  {link}
-                </Text>
+              {LINKS.map(({ label, href }) => (
+                <Link key={href} href={href} className={styles.link}>
+                  <Text as="span" variant="caption" tone="inkMuted">
+                    {label}
+                  </Text>
+                </Link>
               ))}
             </Inline>
           </Inline>
           <Text variant="caption" tone="inkMuted">
             © Atelier. Crafted for considered spaces.
+          </Text>
+          <Text variant="caption" tone="inkMuted">
+            3D model “Mid Century Modern Sofa” by Tom Seddon, licensed CC BY 4.0.
           </Text>
         </Stack>
       </Container>

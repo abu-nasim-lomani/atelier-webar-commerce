@@ -1,0 +1,16 @@
+.list {
+  display: grid;
+  gap: var(--space-s3);
+}
+
+.row {
+  display: grid;
+  gap: var(--space-s3);
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-s4);
+}
