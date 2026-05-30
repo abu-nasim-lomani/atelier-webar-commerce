@@ -1,16 +1,19 @@
 'use client';
 
 /**
- * RenderCanvas — the single persistent WebGL host.
+ * RenderCanvas — the WebGL host, mounted INSIDE the product-stage DOM element.
  *
- * Mounted once inside the reserved #canvas-root slot (root layout) so it
- * survives every client navigation and never remounts. `frameloop="demand"`:
- * one frame on creation, then the GPU is idle until something invalidates —
- * the locked "stable calm over continuous" rule. The render loop is never
- * driven by React state; frames are requested imperatively via renderController.
+ * The earlier architecture pinned a single canvas to `position: fixed` over the
+ * whole viewport and JS-scissored it to the stage rect every scroll frame. On
+ * fractional display scaling that race between the compositor and the main
+ * thread leaked the model outside the framed window — a stubborn bug.
  *
- * No `react` import — JSX automatic runtime + R3F only (render stays
- * framework-free at the package level).
+ * The fix is structural: the Canvas now lives WITHIN the stage div (passed in
+ * as a slot from the app composition root), so it scrolls with the page as a
+ * single DOM unit. No scissor, no scroll sync, no race — the compositor owns
+ * positioning. Idle is still `frameloop="demand"`: 0 frames at rest.
+ *
+ * No `react` import; R3F + framework-free deps only.
  */
 import { Canvas } from '@react-three/fiber';
 import { detectTier } from './core/deviceProfile';
@@ -20,7 +23,6 @@ import { RENDERER } from './core/rendererConfig';
 import { renderController } from './controller';
 import { Stage } from './scene/Stage';
 import { Diagnostics } from './scene/Diagnostics';
-import { StageView } from './scene/StageView';
 import { CinematicDriver } from './scene/CinematicDriver';
 import { CameraDolly } from './scene/CameraDolly';
 import { FinishDriver } from './scene/FinishDriver';
@@ -59,8 +61,6 @@ export function RenderCanvas() {
         gl.toneMapping = RENDERER.toneMapping;
         gl.toneMappingExposure = RENDERER.exposure;
         gl.outputColorSpace = RENDERER.outputColorSpace;
-        // Manual clears (StageView) must be fully transparent.
-        gl.setClearAlpha(0);
 
         camera.lookAt(CAMERA.target[0], CAMERA.target[1], CAMERA.target[2]);
 
@@ -78,34 +78,18 @@ export function RenderCanvas() {
         el.addEventListener('webglcontextlost', onLost, false);
         el.addEventListener('webglcontextrestored', onRestored, false);
 
-        // Controlled, demand-safe invalidation: invalidate directly inside
-        // the scroll/resize handler — NOT via a rAF throttle. The throttle
-        // added one rAF hop between the scroll event and R3F's render, which
-        // left the scissor a frame behind the DOM during scroll (visible
-        // drift). `invalidate()` is just a flag write; R3F still renders only
-        // once per rAF regardless of how many events fire → still
-        // demand-driven, no continuous loop, but in lockstep with scroll.
-        const onScrollOrResize = (): void => {
-          invalidate();
-        };
-        window.addEventListener('scroll', onScrollOrResize, { passive: true });
-        window.addEventListener('resize', onScrollOrResize);
-
         renderController.setContextHandlers(() => {
           el.removeEventListener('webglcontextlost', onLost);
           el.removeEventListener('webglcontextrestored', onRestored);
-          window.removeEventListener('scroll', onScrollOrResize);
-          window.removeEventListener('resize', onScrollOrResize);
         });
 
-        // First deliberate frame; StageView paints it into the stage rect.
+        // First deliberate frame; R3F auto-renders subsequent demanded frames.
         invalidate();
       }}
     >
       <CinematicDriver />
       <CameraDolly />
       <FinishDriver />
-      <StageView />
       <Stage />
       <Diagnostics />
     </Canvas>

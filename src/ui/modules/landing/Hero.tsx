@@ -2,15 +2,21 @@
  * Hero — the cinematic arrival.
  *
  * Calm editorial composition, weighted typographic rhythm, restrained CTA
- * hierarchy (one quiet primary, one text secondary). The `.stage` region
- * paints NO opaque background so the Phase-B persistent canvas can later show
- * through this exact area without restructuring (canvas coexistence).
+ * hierarchy (one quiet primary, one text secondary). The `.stage` region is a
+ * slot the app composition root fills with the 3D canvas — the canvas lives
+ * INSIDE the stage div (DOM-flow), so it scrolls with the page as one unit
+ * and stays framed without scissor sync. UI never imports the renderer.
  */
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { Section, Container, Stack, Inline, Text, Button, Reveal } from '@/ui/primitives';
 import styles from './Hero.module.css';
 
-export function Hero(): ReactElement {
+interface HeroProps {
+  /** The 3D canvas, passed in from the app layer (boundary preserved). */
+  readonly stage?: ReactNode | undefined;
+}
+
+export function Hero({ stage }: HeroProps): ReactElement {
   return (
     <Section rhythm="hero" label="Introduction">
       <Container>
@@ -44,10 +50,12 @@ export function Hero(): ReactElement {
         </Stack>
       </Container>
 
-      {/* The product stage. The persistent canvas renders the hero piece
-          ONLY within this rect (render/StageView scissors to it). Transparent
-          so the 3D shows through; decorative for the a11y tree. */}
-      <div className={styles.stage} aria-hidden="true" data-render-stage="" />
+      {/* The product stage. The 3D canvas mounts INSIDE this div as a DOM-
+          flow element — it scrolls with the section so it can never drift
+          outside the frame. Decorative for the a11y tree. */}
+      <div className={styles.stage} aria-hidden="true" data-render-stage="">
+        {stage}
+      </div>
     </Section>
   );
 }

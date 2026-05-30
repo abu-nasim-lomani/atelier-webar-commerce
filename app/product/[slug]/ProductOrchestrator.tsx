@@ -24,6 +24,7 @@ import {
 } from '@/commerce';
 import { useProductConfig } from '@/state/productConfig';
 import { materialBridge } from '@/render';
+import { CanvasMount } from '@/app/CanvasMount';
 import {
   ProductHero,
   Dimensions,
@@ -114,7 +115,7 @@ export function ProductOrchestrator({
 
   return (
     <>
-      <ProductHero product={product} />
+      <ProductHero product={product} stage={<CanvasMount />} />
 
       <Section label="Details">
         <Container width="text">

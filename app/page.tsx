@@ -17,11 +17,12 @@ import {
   ClosingCta,
   SiteFooter,
 } from '@/ui/modules/landing';
+import { CanvasMount } from '@/app/CanvasMount';
 
 export default function LandingPage(): ReactElement {
   return (
     <>
-      <Hero />
+      <Hero stage={<CanvasMount />} />
       <Premise />
       <SpatialConfidence />
       <CollectionPreview />

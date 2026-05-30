@@ -1,22 +1,23 @@
 /**
  * ProductHero — the product page's calm arrival.
  *
- * Editorial title block + the stage region (with `data-render-stage` so the
- * persistent canvas scissors here, just like the landing hero). Pure
- * presentational: receives a product summary, renders text + the framed stage.
- *
- * NOTE: the locked H-deferred Hero-stage containment polish applies here too.
+ * Editorial title block + the stage region. The 3D canvas is passed in by the
+ * orchestrator (app layer) as the `stage` slot and mounts INSIDE the stage div
+ * — the same DOM-flow containment as the landing hero, so it can never drift
+ * outside the frame. UI never imports the renderer.
  */
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { Section, Container, Stack, Text, Reveal } from '@/ui/primitives';
 import type { ProductSummary } from './types';
 import styles from './ProductHero.module.css';
 
 interface ProductHeroProps {
   readonly product: ProductSummary;
+  /** The 3D canvas, passed in by the orchestrator (boundary preserved). */
+  readonly stage?: ReactNode | undefined;
 }
 
-export function ProductHero({ product }: ProductHeroProps): ReactElement {
+export function ProductHero({ product, stage }: ProductHeroProps): ReactElement {
   return (
     <Section rhythm="hero" label="Product">
       <Container>
@@ -39,10 +40,11 @@ export function ProductHero({ product }: ProductHeroProps): ReactElement {
         </Stack>
       </Container>
 
-      {/* Product stage. Persistent canvas scissors the 3D placeholder here
-          (same `[data-render-stage]` selector as the landing hero — only one
-          such element exists per route). Transparent on purpose. */}
-      <div className={styles.stage} aria-hidden="true" data-render-stage="" />
+      {/* Product stage. The 3D canvas mounts as a child of this div (DOM-flow
+          containment). Decorative for the a11y tree. */}
+      <div className={styles.stage} aria-hidden="true" data-render-stage="">
+        {stage}
+      </div>
     </Section>
   );
 }

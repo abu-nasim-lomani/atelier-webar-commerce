@@ -7,11 +7,19 @@
 }
 
 .stage {
+  position: relative;
   margin-block-start: var(--space-s7);
   margin-inline: var(--space-s5);
   block-size: 44svh;
+  overflow: hidden;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-r-lg);
+}
+
+/* V1 has no scene interaction; let touch swipes pass through so the page
+   scrolls naturally even when the finger is over the stage. */
+.stage canvas {
+  pointer-events: none;
 }
 
 @media (width >= 768px) {
