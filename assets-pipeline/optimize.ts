@@ -4,9 +4,11 @@
  *
  * Reads the raw downloaded glTF from `assets-pipeline/source/`, then:
  *   - dedup / weld / prune geometry (cheap, lossless clean-up)
- *   - resize every texture to ≤ 2K and re-encode as WebP (the big win: the
- *     source ships ~71 MB of 4K PNG; 2K WebP lands in single-digit MB and
- *     loads natively in the browser, no KTX2 transcoder required)
+ *   - resize every texture to ≤ 2K and re-encode as JPEG q85 (the big win:
+ *     the source ships ~71 MB of 4K PNG; 2K JPEG lands in single-digit MB
+ *     and is universally supported — including older Google Scene Viewer
+ *     / ARCore on mid-range Android, where WebP textures fail to load and
+ *     Scene Viewer closes silently on launch)
  * and writes a single packed GLB to `public/models/hero-sofa.glb`.
  *
  * The model's CC-BY attribution (asset.extras) is preserved through the write.
@@ -33,7 +35,7 @@ import sharp from 'sharp';
 const SRC = path.resolve('assets-pipeline/source/scene.gltf');
 const OUT = path.resolve('public/models/hero-sofa.glb');
 const MAX_TEXTURE = 2048;
-const WEBP_QUALITY = 85;
+const JPEG_QUALITY = 80;
 
 function mb(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
@@ -50,9 +52,9 @@ async function main(): Promise<void> {
     prune(),
     textureCompress({
       encoder: sharp,
-      targetFormat: 'webp',
+      targetFormat: 'jpeg',
       resize: [MAX_TEXTURE, MAX_TEXTURE],
-      quality: WEBP_QUALITY,
+      quality: JPEG_QUALITY,
     }),
   );
 
