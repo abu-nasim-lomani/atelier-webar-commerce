@@ -9,7 +9,7 @@
  * WhatsApp deep-link, and hands READY props to pure presentational UI modules.
  * UI never touches commerce directly (boundary preserved).
  */
-import { useEffect, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   type ProductEntry,
@@ -24,6 +24,8 @@ import {
 } from '@/commerce';
 import { useProductConfig } from '@/state/productConfig';
 import { materialBridge } from '@/render';
+import { resolveArLaunch } from '@/ar';
+import { SITE } from '@config/site';
 import { CanvasMount } from '@/app/CanvasMount';
 import {
   ProductHero,
@@ -99,6 +101,27 @@ export function ProductOrchestrator({
     }
   }, [selectedFinish]);
 
+  // Capability-driven AR launch (Phase F1). Resolved client-side after mount
+  // so SSR and the client agree on the initial render (button hidden) — the
+  // effect then surfaces the button on Android (Scene Viewer) or iOS+USDZ
+  // (Quick Look). USDZ is deferred to F4, so iOS currently falls through to
+  // unsupported and the button stays hidden honestly.
+  const [arHref, setArHref] = useState<string | undefined>(undefined);
+  const [arRel, setArRel] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const launch = resolveArLaunch({
+      glbUrl: '/models/hero-sofa.glb',
+      siteUrl: SITE.url,
+      productSlug: product.slug,
+      productTitle: product.name,
+    });
+    if (launch.href !== undefined) {
+      setArHref(launch.href);
+      setArRel(launch.rel);
+    }
+  }, [product.slug, product.name]);
+
   // Fit verdict only when the buyer has entered a room width.
   const fitResult =
     roomWidth === null
@@ -159,7 +182,12 @@ export function ProductOrchestrator({
       {/* Spacer so content scrolls clear of the fixed action bar. */}
       <div className={styles.actionBarSpacer} aria-hidden="true" />
 
-      <ProductActionBar handoffUrl={handoffUrl} label="Order on WhatsApp" />
+      <ProductActionBar
+        handoffUrl={handoffUrl}
+        label="Order on WhatsApp"
+        arHref={arHref}
+        arRel={arRel}
+      />
     </>
   );
 }
