@@ -1,0 +1,129 @@
+/* Room Preview overlay (F2) — the calm, warm fallback "room". A two-tone
+   wall→floor backdrop (abstract on purpose: no claim about the buyer's actual
+   room) with the live 3D sofa composited over it. */
+
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-canvas);
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-canvas-raised) 0%,
+    var(--color-canvas-raised) 52%,
+    var(--color-canvas-sunk) 60%,
+    var(--color-canvas-sunk) 100%
+  );
+  padding-block: var(--safe-top) var(--safe-bottom);
+  animation: room-fade var(--duration-medium) var(--ease-authority) both;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s4);
+  padding: var(--space-s4) var(--space-s5);
+}
+
+/* Quiet ghost close — the single filled accent in this view is the CTA. */
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--touch-min);
+  padding: 0 var(--space-s4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-r-pill);
+  background-color: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-lh);
+  letter-spacing: var(--type-caption-tracking);
+  cursor: pointer;
+  transition:
+    transform var(--duration-instant) var(--ease-response),
+    background-color var(--duration-micro) var(--ease-calm);
+}
+
+.close:active {
+  background-color: var(--color-canvas-sunk);
+  transform: scale(0.98);
+}
+
+/* The 3D canvas fills this region; it's transparent so the backdrop shows
+   around the sofa. Pointer-events off — taps never get trapped (no drag in
+   V1), the chrome above/below stays reachable. */
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
+
+.stage canvas {
+  pointer-events: none;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s4);
+  padding: var(--space-s5);
+  text-align: center;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--touch-primary);
+  padding: 0 var(--space-s6);
+  border-radius: var(--radius-r-md);
+  background-color: var(--color-accent);
+  color: var(--color-canvas-raised);
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+  letter-spacing: var(--type-body-tracking);
+  text-decoration: none;
+  transition:
+    transform var(--duration-instant) var(--ease-response),
+    background-color var(--duration-micro) var(--ease-calm);
+}
+
+.cta:active {
+  background-color: var(--color-accent-press);
+  transform: scale(0.98);
+}
+
+@keyframes room-fade {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer {
+    animation: none;
+  }
+}
+
+@media (width >= 768px) {
+  .footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: var(--space-s8);
+  }
+}

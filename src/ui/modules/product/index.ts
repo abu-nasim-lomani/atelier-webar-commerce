@@ -8,6 +8,7 @@ export { FinishSelector } from './FinishSelector';
 export { FitChecker } from './FitChecker';
 export { ProductActionBar } from './ProductActionBar';
 export { ProductAssurance } from './ProductAssurance';
+export { RoomPreview } from './RoomPreview';
 export type {
   ProductSummary,
   FinishOption,

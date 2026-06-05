@@ -27,6 +27,8 @@ import { materialBridge } from '@/render';
 import { resolveArLaunch } from '@/ar';
 import { SITE } from '@config/site';
 import { CanvasMount } from '@/app/CanvasMount';
+import { RoomPreviewMount } from '@/app/RoomPreviewMount';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import {
   ProductHero,
   Dimensions,
@@ -34,6 +36,7 @@ import {
   FitChecker,
   ProductActionBar,
   ProductAssurance,
+  RoomPreview,
 } from '@/ui/modules/product';
 import { Section, Container, Stack, Text, Divider } from '@/ui/primitives';
 import styles from './ProductOrchestrator.module.css';
@@ -108,6 +111,10 @@ export function ProductOrchestrator({
   // unsupported and the button stays hidden honestly.
   const [arHref, setArHref] = useState<string | undefined>(undefined);
   const [arRel, setArRel] = useState<string | undefined>(undefined);
+  // No native AR path → the action bar opens the in-app Room Preview instead.
+  const [arUnsupported, setArUnsupported] = useState(false);
+  const [roomPreviewOpen, setRoomPreviewOpen] = useState(false);
+  const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     const launch = resolveArLaunch({
@@ -119,6 +126,8 @@ export function ProductOrchestrator({
     if (launch.href !== undefined) {
       setArHref(launch.href);
       setArRel(launch.rel);
+    } else {
+      setArUnsupported(true);
     }
   }, [product.slug, product.name]);
 
@@ -187,6 +196,32 @@ export function ProductOrchestrator({
         label="Order on WhatsApp"
         arHref={arHref}
         arRel={arRel}
+        onRoomPreview={
+          arUnsupported
+            ? () => {
+                setRoomPreviewOpen(true);
+              }
+            : undefined
+        }
+      />
+
+      <RoomPreview
+        open={roomPreviewOpen}
+        onClose={() => {
+          setRoomPreviewOpen(false);
+        }}
+        productName={product.name}
+        finishLabel={selectedFinish !== null ? selectedFinish.label : undefined}
+        handoffUrl={handoffUrl}
+        handoffLabel="Order on WhatsApp"
+        stage={
+          selectedFinish !== null ? (
+            <RoomPreviewMount
+              finishHex={selectedFinish.sRGBHex}
+              reducedMotion={reducedMotion}
+            />
+          ) : undefined
+        }
       />
     </>
   );

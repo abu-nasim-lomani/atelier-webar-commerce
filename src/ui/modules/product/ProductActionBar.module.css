@@ -32,6 +32,7 @@
   line-height: var(--type-body-lh);
   letter-spacing: var(--type-body-tracking);
   text-decoration: none;
+  cursor: pointer;
   transition:
     transform var(--duration-instant) var(--ease-response),
     background-color var(--duration-micro) var(--ease-calm);

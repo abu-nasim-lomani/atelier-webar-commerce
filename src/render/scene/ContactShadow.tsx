@@ -21,20 +21,27 @@ const SHADOW_D = D * 1.5;
 const FLOOR_LIFT = 0.002;
 const TURN_FLAT = -Math.PI / 2;
 
-export function ContactShadow() {
+interface ContactShadowProps {
+  /**
+   * Initial opacity. The hero leaves this at 0 and lets the CinematicDriver
+   * bloom it 0 → rest (+180ms after the form resolves, locked). Room Preview
+   * has no driver, so it passes the rest opacity directly.
+   */
+  readonly opacity?: number;
+}
+
+export function ContactShadow({ opacity = 0 }: ContactShadowProps = {}) {
   const map = getContactShadowTexture();
   if (map === null) return null;
 
   return (
     <mesh rotation={[TURN_FLAT, 0, 0]} position={[0, FLOOR_LIFT, 0]}>
       <planeGeometry args={[SHADOW_W, SHADOW_D]} />
-      {/* Starts invisible — CinematicDriver blooms opacity 0 → rest,
-          delayed +180ms after the form resolves (locked). */}
       <meshBasicMaterial
         color={linearColor(contactShadow.base)}
         alphaMap={map}
         transparent
-        opacity={0}
+        opacity={opacity}
         depthWrite={false}
         toneMapped={false}
       />
