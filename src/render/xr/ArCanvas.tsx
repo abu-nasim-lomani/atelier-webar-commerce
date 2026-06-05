@@ -12,6 +12,7 @@
  */
 import { Canvas } from '@react-three/fiber';
 import { XR } from '@react-three/xr';
+import { RENDERER } from '../core/rendererConfig';
 import { xrStore } from './xrStore';
 import { ArScene } from './ArScene';
 
@@ -33,7 +34,16 @@ export function ArCanvas({ finishHex }: ArCanvasProps) {
         pointerEvents: 'none',
       }}
     >
-      <Canvas>
+      <Canvas
+        onCreated={({ gl }) => {
+          // Match the hero stage + Room Preview colour pipeline so the sofa
+          // reads identically in AR (ACES tone map + exposure + sRGB output).
+          // Missing this is why the AR sofa looked off vs the product page.
+          gl.toneMapping = RENDERER.toneMapping;
+          gl.toneMappingExposure = RENDERER.exposure;
+          gl.outputColorSpace = RENDERER.outputColorSpace;
+        }}
+      >
         <XR store={xrStore}>
           <ArScene finishHex={finishHex} />
         </XR>
