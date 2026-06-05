@@ -1,18 +1,20 @@
 /**
- * ArScene (Phase F3.1 + F3.2) — the immersive-ar scene graph.
+ * ArScene (Phase F3) — the immersive-ar scene graph.
  *
- * F3.1 entered the session and let the true-scale sofa FOLLOW the floor.
- * F3.2 adds the IKEA-style commit: aim → the reticle + ghosted sofa preview
- * track the floor; tap (the session 'select') drops the sofa at that spot,
- * where it stays anchored in world space while you walk around it. A grounding
- * contact shadow sells the placement; "Move" re-enters aiming, "Done" exits.
+ * Flow (IKEA-style, the shape the user asked for):
+ *   1. While aiming, ONLY a ground circle is shown at the floor point where the
+ *      sofa will land (the sofa itself stays hidden — so it never looms/“too
+ *      big” while you move the phone).
+ *   2. A screen tap (session 'select') drops the true-scale sofa at the circle,
+ *      instantly. It stays anchored in world space; walk around it.
+ *   3. "Move" re-arms the circle to reposition; "Done" exits.
  *
- * The +180ms shadow bloom / 96→100% settle choreography and gestures (1-finger
- * move, 2-finger rotate, NO scale) and capture are F3.3 / F3.4.
+ * The aim point is distance-clamped (MIN_DISTANCE) so a 2 m sofa is never
+ * dropped on top of the viewer (honest scale kept; only the spot is pushed out).
  *
  * The product stage owns the canonical sofa Group (one Object3D, one graph), so
  * this mounts an independent CLONE with isolated materials. WebXR is 1 unit =
- * 1 metre, so the fitted 2.05 m sofa is honest scale (the locked promise).
+ * 1 metre, so the fitted 2.05 m sofa is honest scale.
  *
  * No `react` import; @react-three/fiber + @react-three/xr + three only. State is
  * module-level (no useState/useRef), like the other render drivers.
@@ -31,31 +33,24 @@ import { exitAr } from './xrStore';
 
 const HIT_MATRIX = new THREE.Matrix4();
 const HIT_POSITION = new THREE.Vector3();
-// The raw hit, distance-clamped so a true-scale (2 m) sofa is never dropped on
-// top of the viewer — at < ~1.5 m it overflows a phone screen and reads as
-// "huge". Scale stays honest; we only push the spot out along the same aim.
+// The aimed hit, distance-clamped so a true-scale (2 m) sofa is never dropped on
+// top of the viewer (< ~1.5 m overflows a phone screen and reads as "huge").
+// Honest scale is untouched — only the spot is pushed out along the same aim.
 const FRAMED_POSITION = new THREE.Vector3();
 const PLACED_POSITION = new THREE.Vector3();
 const CAM_POSITION = new THREE.Vector3();
 const FLAT_OFFSET = new THREE.Vector3();
 const MIN_DISTANCE = 1.5;
-const FOLLOW_LERP = 0.35;
+const RETICLE_LERP = 0.4;
 
 let hasHit = false;
 let placed = false;
-let dragging = false;
 let appliedFinish = '';
 let armedSession: XRSession | null = null;
 
-// Handheld AR: a screen press fires 'selectstart', release 'selectend'. Holding
-// lets the sofa follow your aim (touch-to-move); releasing drops it where it
-// rests. A quick tap is just a fast press→release, i.e. an instant place.
-function onSelectStart(): void {
-  dragging = true;
-}
-function onSelectEnd(): void {
-  dragging = false;
-  if (hasHit) {
+// Screen tap (handheld AR 'select') drops the sofa at the circle, instantly.
+function onSelect(): void {
+  if (hasHit && !placed) {
     PLACED_POSITION.copy(FRAMED_POSITION);
     placed = true;
   }
@@ -86,15 +81,14 @@ export function ArScene({ finishHex }: ArSceneProps) {
     if (session !== undefined && session !== armedSession) {
       armedSession = session;
       placed = false;
-      dragging = false;
-      session.addEventListener('selectstart', onSelectStart);
-      session.addEventListener('selectend', onSelectEnd);
+      session.addEventListener('select', onSelect);
     }
 
     const anchor = state.scene.getObjectByName('ar-anchor');
     const reticle = state.scene.getObjectByName('ar-reticle');
 
-    // Mount the cloned sofa once the shared GLB is ready.
+    // Mount the cloned sofa once the shared GLB is ready (kept hidden until
+    // placed). It stays parked under the invisible anchor.
     if (anchor !== undefined && anchor.getObjectByName('ar-sofa') === undefined) {
       const source = getSofaScene();
       if (source !== null) {
@@ -130,10 +124,8 @@ export function ArScene({ finishHex }: ArSceneProps) {
       }
     }
 
-    // Distance-clamp the hit so the true-scale sofa is always framable: if the
-    // aimed floor point is nearer than MIN_DISTANCE, push it out along the same
-    // horizontal direction (keeping the floor height). Scale is untouched.
-    if (hasHit) {
+    // Distance-clamp the aimed hit (only relevant while still aiming).
+    if (hasHit && !placed) {
       state.camera.getWorldPosition(CAM_POSITION);
       FRAMED_POSITION.copy(HIT_POSITION);
       FLAT_OFFSET.set(
@@ -149,28 +141,16 @@ export function ArScene({ finishHex }: ArSceneProps) {
       }
     }
 
-    // Holding → follow the aim (touch-to-move); else hold the committed spot;
-    // else (not placed yet) preview-follow the floor. When dragging without a
-    // fresh hit, keep the last spot rather than flicker out.
+    // Sofa is hidden until committed, then held at the placed spot.
     if (anchor !== undefined) {
-      if (dragging) {
-        anchor.visible = true;
-        if (hasHit) anchor.position.lerp(FRAMED_POSITION, FOLLOW_LERP);
-      } else if (placed) {
-        anchor.visible = true;
-        anchor.position.copy(PLACED_POSITION);
-      } else if (hasHit) {
-        anchor.visible = true;
-        anchor.position.lerp(FRAMED_POSITION, FOLLOW_LERP);
-      } else {
-        anchor.visible = false;
-      }
+      anchor.visible = placed;
+      if (placed) anchor.position.copy(PLACED_POSITION);
     }
 
-    // The reticle guides while aiming or moving (hidden once at rest).
+    // The circle guides only while aiming (hidden once the sofa is down).
     if (reticle !== undefined) {
-      reticle.visible = hasHit && (dragging || !placed);
-      if (hasHit) reticle.position.copy(FRAMED_POSITION);
+      reticle.visible = hasHit && !placed;
+      if (hasHit && !placed) reticle.position.lerp(FRAMED_POSITION, RETICLE_LERP);
     }
   });
 
@@ -179,19 +159,18 @@ export function ArScene({ finishHex }: ArSceneProps) {
       <Lighting />
 
       <group name="ar-anchor" visible={false}>
-        {/* Grounding shadow — stronger here so it reads over the live camera
-            feed (a weak shadow is the #1 reason AR objects look like they
-            float). Moves with the sofa, sells the placement. */}
+        {/* Grounding shadow — strong enough to read over the live camera feed
+            (a faint shadow is the #1 reason AR objects look like they float). */}
         <ContactShadow opacity={0.78} />
       </group>
 
-      {/* A soft ground ring that tracks the detected surface while aiming. */}
+      {/* The placement circle — shows exactly where the sofa will land. */}
       <mesh name="ar-reticle" visible={false} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.11, 0.15, 48]} />
+        <ringGeometry args={[0.42, 0.5, 64]} />
         <meshBasicMaterial
           color={linearColor(color.accent)}
           transparent
-          opacity={0.85}
+          opacity={0.9}
           toneMapped={false}
         />
       </mesh>

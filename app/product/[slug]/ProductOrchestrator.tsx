@@ -23,7 +23,12 @@ import {
   decodeConfiguration,
 } from '@/commerce';
 import { useProductConfig } from '@/state/productConfig';
-import { materialBridge, enterAr } from '@/render';
+import {
+  materialBridge,
+  enterAr,
+  ensureSofaLoading,
+  isSofaLoaded,
+} from '@/render';
 import { resolveArLaunch } from '@/ar';
 import { isImmersiveArSupported } from '@/capability';
 import { SITE } from '@config/site';
@@ -113,6 +118,8 @@ export function ProductOrchestrator({
   // unsupported and the button stays hidden honestly.
   // Best AR path wins: WebXR custom session > native launcher > Room Preview.
   const [webxrReady, setWebxrReady] = useState(false);
+  // Don't open the camera until the 3D model is loaded — show a calm wait.
+  const [sofaReady, setSofaReady] = useState(false);
   const [arHref, setArHref] = useState<string | undefined>(undefined);
   const [arRel, setArRel] = useState<string | undefined>(undefined);
   const [arUnsupported, setArUnsupported] = useState(false);
@@ -152,6 +159,26 @@ export function ProductOrchestrator({
       cancelled = true;
     };
   }, [product.slug, product.name]);
+
+  // Once WebXR is the path, start loading the hero GLB and gate "enter AR" on
+  // it — so tapping never opens the camera onto an empty/late-loading scene.
+  useEffect(() => {
+    if (!webxrReady) return;
+    ensureSofaLoading();
+    if (isSofaLoaded()) {
+      setSofaReady(true);
+      return;
+    }
+    const id = setInterval(() => {
+      if (isSofaLoaded()) {
+        setSofaReady(true);
+        clearInterval(id);
+      }
+    }, 250);
+    return () => {
+      clearInterval(id);
+    };
+  }, [webxrReady]);
 
   // Fit verdict only when the buyer has entered a room width.
   const fitResult =
@@ -217,12 +244,13 @@ export function ProductOrchestrator({
         handoffUrl={handoffUrl}
         label="Order on WhatsApp"
         onEnterAr={
-          webxrReady
+          webxrReady && sofaReady
             ? () => {
                 enterAr();
               }
             : undefined
         }
+        arPreparing={webxrReady && !sofaReady}
         arHref={arHref}
         arRel={arRel}
         onRoomPreview={

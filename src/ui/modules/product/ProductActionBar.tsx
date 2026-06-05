@@ -20,6 +20,8 @@ interface ProductActionBarProps {
   readonly label: string;
   /** Preferred: enter the WebXR custom session (capable Android Chrome). */
   readonly onEnterAr?: (() => void) | undefined;
+  /** WebXR supported but the 3D model is still loading — show a calm wait. */
+  readonly arPreparing?: boolean | undefined;
   /** AR launch URL (Scene Viewer intent / Quick Look USDZ). */
   readonly arHref?: string | undefined;
   /** iOS Quick Look needs `rel="ar"`. Android Scene Viewer doesn't use rel. */
@@ -34,6 +36,7 @@ export function ProductActionBar({
   handoffUrl,
   label,
   onEnterAr,
+  arPreparing,
   arHref,
   arRel,
   onRoomPreview,
@@ -44,6 +47,15 @@ export function ProductActionBar({
       {onEnterAr !== undefined ? (
         <button type="button" onClick={onEnterAr} className={styles.secondary}>
           {arLabel}
+        </button>
+      ) : arPreparing === true ? (
+        <button
+          type="button"
+          disabled
+          className={styles.secondary}
+          aria-busy="true"
+        >
+          Preparing the room…
         </button>
       ) : arHref !== undefined ? (
         <a

@@ -38,3 +38,8 @@ export function ensureSofaLoading(): void {
 export function getSofaScene(): THREE.Group | null {
   return sofaScene;
 }
+
+/** True once the hero GLB has finished loading (gate for entering AR). */
+export function isSofaLoaded(): boolean {
+  return sofaScene !== null;
+}
