@@ -6,6 +6,8 @@
  */
 export { RenderCanvas } from './RenderCanvas';
 export { RoomPreviewCanvas } from './RoomPreviewCanvas';
+export { ArCanvas } from './xr/ArCanvas';
+export { enterAr } from './xr/xrStore';
 export { renderController } from './controller';
 export { materialBridge } from './materialBridge';
 export type { DeviceTier } from './core/deviceProfile';

@@ -23,11 +23,13 @@ import {
   decodeConfiguration,
 } from '@/commerce';
 import { useProductConfig } from '@/state/productConfig';
-import { materialBridge } from '@/render';
+import { materialBridge, enterAr } from '@/render';
 import { resolveArLaunch } from '@/ar';
+import { isImmersiveArSupported } from '@/capability';
 import { SITE } from '@config/site';
 import { CanvasMount } from '@/app/CanvasMount';
 import { RoomPreviewMount } from '@/app/RoomPreviewMount';
+import { ArMount } from '@/app/ArMount';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import {
   ProductHero,
@@ -109,26 +111,46 @@ export function ProductOrchestrator({
   // effect then surfaces the button on Android (Scene Viewer) or iOS+USDZ
   // (Quick Look). USDZ is deferred to F4, so iOS currently falls through to
   // unsupported and the button stays hidden honestly.
+  // Best AR path wins: WebXR custom session > native launcher > Room Preview.
+  const [webxrReady, setWebxrReady] = useState(false);
   const [arHref, setArHref] = useState<string | undefined>(undefined);
   const [arRel, setArRel] = useState<string | undefined>(undefined);
-  // No native AR path → the action bar opens the in-app Room Preview instead.
   const [arUnsupported, setArUnsupported] = useState(false);
   const [roomPreviewOpen, setRoomPreviewOpen] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
-    const launch = resolveArLaunch({
-      glbUrl: '/models/hero-sofa.glb',
-      siteUrl: SITE.url,
-      productSlug: product.slug,
-      productTitle: product.name,
-    });
-    if (launch.href !== undefined) {
-      setArHref(launch.href);
-      setArRel(launch.rel);
-    } else {
-      setArUnsupported(true);
-    }
+    let cancelled = false;
+    const resolve = async (): Promise<void> => {
+      let webxr = false;
+      try {
+        webxr = await isImmersiveArSupported();
+      } catch {
+        webxr = false;
+      }
+      if (cancelled) return;
+      if (webxr) {
+        setWebxrReady(true);
+        return;
+      }
+      // No WebXR → native launcher (F1), else in-app Room Preview (F2).
+      const launch = resolveArLaunch({
+        glbUrl: '/models/hero-sofa.glb',
+        siteUrl: SITE.url,
+        productSlug: product.slug,
+        productTitle: product.name,
+      });
+      if (launch.href !== undefined) {
+        setArHref(launch.href);
+        setArRel(launch.rel);
+      } else {
+        setArUnsupported(true);
+      }
+    };
+    void resolve();
+    return () => {
+      cancelled = true;
+    };
   }, [product.slug, product.name]);
 
   // Fit verdict only when the buyer has entered a room width.
@@ -194,6 +216,13 @@ export function ProductOrchestrator({
       <ProductActionBar
         handoffUrl={handoffUrl}
         label="Order on WhatsApp"
+        onEnterAr={
+          webxrReady
+            ? () => {
+                enterAr();
+              }
+            : undefined
+        }
         arHref={arHref}
         arRel={arRel}
         onRoomPreview={
@@ -204,6 +233,12 @@ export function ProductOrchestrator({
             : undefined
         }
       />
+
+      {/* WebXR host: mounted (hidden) once supported so enterAr() fires in the
+          tap gesture and binds the session to this renderer. */}
+      {webxrReady && selectedFinish !== null ? (
+        <ArMount finishHex={selectedFinish.sRGBHex} />
+      ) : null}
 
       <RoomPreview
         open={roomPreviewOpen}
