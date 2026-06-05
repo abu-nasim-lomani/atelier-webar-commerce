@@ -36,12 +36,19 @@ const FOLLOW_LERP = 0.35;
 
 let hasHit = false;
 let placed = false;
+let dragging = false;
 let appliedFinish = '';
 let armedSession: XRSession | null = null;
 
-// Screen tap in handheld AR fires the session 'select' — commit the placement.
-function onSelect(): void {
-  if (!placed && hasHit) {
+// Handheld AR: a screen press fires 'selectstart', release 'selectend'. Holding
+// lets the sofa follow your aim (touch-to-move); releasing drops it where it
+// rests. A quick tap is just a fast press→release, i.e. an instant place.
+function onSelectStart(): void {
+  dragging = true;
+}
+function onSelectEnd(): void {
+  dragging = false;
+  if (hasHit) {
     PLACED_POSITION.copy(HIT_POSITION);
     placed = true;
   }
@@ -72,7 +79,9 @@ export function ArScene({ finishHex }: ArSceneProps) {
     if (session !== undefined && session !== armedSession) {
       armedSession = session;
       placed = false;
-      session.addEventListener('select', onSelect);
+      dragging = false;
+      session.addEventListener('selectstart', onSelectStart);
+      session.addEventListener('selectend', onSelectEnd);
     }
 
     const anchor = state.scene.getObjectByName('ar-anchor');
@@ -114,9 +123,14 @@ export function ArScene({ finishHex }: ArSceneProps) {
       }
     }
 
-    // Placed → hold the committed spot; otherwise preview-follow the floor.
+    // Holding → follow the aim (touch-to-move); else hold the committed spot;
+    // else (not placed yet) preview-follow the floor. When dragging without a
+    // fresh hit, keep the last spot rather than flicker out.
     if (anchor !== undefined) {
-      if (placed) {
+      if (dragging) {
+        anchor.visible = true;
+        if (hasHit) anchor.position.lerp(HIT_POSITION, FOLLOW_LERP);
+      } else if (placed) {
         anchor.visible = true;
         anchor.position.copy(PLACED_POSITION);
       } else if (hasHit) {
@@ -127,9 +141,9 @@ export function ArScene({ finishHex }: ArSceneProps) {
       }
     }
 
-    // The reticle only guides while aiming (hidden once committed).
+    // The reticle guides while aiming or moving (hidden once at rest).
     if (reticle !== undefined) {
-      reticle.visible = hasHit && !placed;
+      reticle.visible = hasHit && (dragging || !placed);
       if (hasHit) reticle.position.copy(HIT_POSITION);
     }
   });
@@ -139,8 +153,10 @@ export function ArScene({ finishHex }: ArSceneProps) {
       <Lighting />
 
       <group name="ar-anchor" visible={false}>
-        {/* Grounding shadow — moves with the sofa, sells the placement. */}
-        <ContactShadow opacity={0.5} />
+        {/* Grounding shadow — stronger here so it reads over the live camera
+            feed (a weak shadow is the #1 reason AR objects look like they
+            float). Moves with the sofa, sells the placement. */}
+        <ContactShadow opacity={0.78} />
       </group>
 
       {/* A soft ground ring that tracks the detected surface while aiming. */}
