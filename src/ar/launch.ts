@@ -59,16 +59,25 @@ export function resolveArLaunch(opts: ResolveArOptions): ArLaunchInfo {
   if (platform === 'android') {
     const file = toAbsolute(opts.glbUrl, opts.siteUrl);
     const fallback = toAbsolute(`/product/${opts.productSlug}`, opts.siteUrl);
-    const params = new URLSearchParams({ file, mode: 'ar_preferred' });
-    if (opts.productTitle !== undefined) params.set('title', opts.productTitle);
 
-    // Google Scene Viewer intent URL: opens the model in AR on Chrome + ARCore.
+    // CRITICAL: keep the `file` and `S.browser_fallback_url` values as RAW
+    // absolute URLs — do NOT percent-encode them. Some Scene Viewer builds
+    // fail to parse encoded slashes/colons (`https%3A%2F%2F…`) and dismiss
+    // silently. This is safe ONLY because our GLB and product URLs carry no
+    // query string of their own — a `?`/`&`/`#` inside the value WOULD break
+    // intent parsing and require encoding. Only the title (which may contain
+    // spaces) is encoded.
+    const titleParam =
+      opts.productTitle !== undefined
+        ? `&title=${encodeURIComponent(opts.productTitle)}`
+        : '';
+
     const intent =
-      `intent://arvr.google.com/scene-viewer/1.0?${params.toString()}` +
+      `intent://arvr.google.com/scene-viewer/1.0?file=${file}&mode=ar_preferred${titleParam}` +
       `#Intent;scheme=https;` +
       `package=com.google.android.googlequicksearchbox;` +
       `action=android.intent.action.VIEW;` +
-      `S.browser_fallback_url=${encodeURIComponent(fallback)};end;`;
+      `S.browser_fallback_url=${fallback};end;`;
 
     return { mode: 'scene-viewer', href: intent };
   }

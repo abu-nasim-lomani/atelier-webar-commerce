@@ -72,9 +72,13 @@ const nextConfig = {
         // Google Scene Viewer / AR Quick Look load the GLB cross-process; some
         // older Scene Viewer builds reject the default `application/octet-
         // stream` Vercel serves for `.glb`. Force the canonical glTF binary
-        // media type so the AR launcher can always parse the file.
+        // media type, and explicitly grant cross-origin reads so the AR
+        // launcher (which runs outside the page's origin) can always fetch it.
         source: '/models/:file*.glb',
-        headers: [{ key: 'Content-Type', value: 'model/gltf-binary' }],
+        headers: [
+          { key: 'Content-Type', value: 'model/gltf-binary' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+        ],
       },
     ];
   },
