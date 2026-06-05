@@ -22,7 +22,7 @@
  */
 import { mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { NodeIO } from '@gltf-transform/core';
+import { NodeIO, getBounds, type Document } from '@gltf-transform/core';
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions';
 import {
   dedup,
@@ -31,14 +31,59 @@ import {
   textureCompress,
 } from '@gltf-transform/functions';
 import sharp from 'sharp';
+import { HERO_SOFA } from '../config/hero-asset';
 
 const SRC = path.resolve('assets-pipeline/source/scene.gltf');
 const OUT = path.resolve('public/models/hero-sofa.glb');
 const MAX_TEXTURE = 2048;
 const JPEG_QUALITY = 80;
+const TARGET_WIDTH = HERO_SOFA.dimensionsMeters.width;
 
 function mb(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+/**
+ * Bake true scale into the GLB itself.
+ *
+ * The runtime fits the model on load, but native AR (Scene Viewer / Quick Look)
+ * reads the file's INTRINSIC units and places it at THAT size — so the file
+ * must already be metres: width = the catalogue width, footprint centred on the
+ * origin, base sitting on the floor (y = 0). We wrap the scene under one node
+ * carrying the uniform scale + the centring/floor offset (native viewers honour
+ * node transforms), so vertex data is untouched.
+ */
+function fitToTrueScale(document: Document): void {
+  const scene = document.getRoot().listScenes()[0];
+  if (scene === undefined) return;
+
+  const before = getBounds(scene);
+  const width = before.max[0] - before.min[0];
+  if (width <= 0) return;
+
+  const f = TARGET_WIDTH / width;
+  const cx = (before.min[0] + before.max[0]) / 2;
+  const cz = (before.min[2] + before.max[2]) / 2;
+  const minY = before.min[1];
+
+  // world' = f · world + T, solved so centre.x/z → 0 and min.y → 0.
+  const fit = document
+    .createNode('true-scale-fit')
+    .setScale([f, f, f])
+    .setTranslation([-f * cx, -f * minY, -f * cz]);
+
+  for (const child of scene.listChildren()) {
+    scene.removeChild(child);
+    fit.addChild(child);
+  }
+  scene.addChild(fit);
+
+  const after = getBounds(scene);
+  const dims = (b: ReturnType<typeof getBounds>): string =>
+    `${(b.max[0] - b.min[0]).toFixed(3)} × ${(b.max[1] - b.min[1]).toFixed(
+      3,
+    )} × ${(b.max[2] - b.min[2]).toFixed(3)} m`;
+  console.log(`  true-scale ×${f.toFixed(4)}: ${dims(before)} → ${dims(after)}`);
 }
 
 async function main(): Promise<void> {
@@ -57,6 +102,9 @@ async function main(): Promise<void> {
       quality: JPEG_QUALITY,
     }),
   );
+
+  // Native AR reads intrinsic units — bake true scale into the file.
+  fitToTrueScale(document);
 
   await mkdir(path.dirname(OUT), { recursive: true });
   await io.write(OUT, document);
