@@ -43,6 +43,11 @@
   transform: scale(0.98);
 }
 
+.secondary:disabled {
+  color: var(--color-ink-muted);
+  cursor: default;
+}
+
 .primary {
   display: inline-flex;
   align-items: center;

@@ -20,3 +20,23 @@ export function detectPlatform(): Platform {
   if (ua.includes('Android')) return 'android';
   return 'other';
 }
+
+/**
+ * Async WebXR immersive-AR support probe (deferred from F1; consumed by F3).
+ *
+ * `navigator.xr.isSessionSupported('immersive-ar')` is the only honest signal
+ * that the device can run the in-browser custom session (ARCore on Android
+ * Chrome). SSR-safe and defensive — any absence or rejection means "no", so the
+ * launcher falls back to Scene Viewer (F1) / Room Preview (F2), never promising
+ * a session the device can't deliver.
+ */
+export async function isImmersiveArSupported(): Promise<boolean> {
+  if (typeof navigator === 'undefined') return false;
+  const xr = navigator.xr;
+  if (xr === undefined) return false;
+  try {
+    return await xr.isSessionSupported('immersive-ar');
+  } catch {
+    return false;
+  }
+}
