@@ -31,7 +31,14 @@ import { exitAr } from './xrStore';
 
 const HIT_MATRIX = new THREE.Matrix4();
 const HIT_POSITION = new THREE.Vector3();
+// The raw hit, distance-clamped so a true-scale (2 m) sofa is never dropped on
+// top of the viewer — at < ~1.5 m it overflows a phone screen and reads as
+// "huge". Scale stays honest; we only push the spot out along the same aim.
+const FRAMED_POSITION = new THREE.Vector3();
 const PLACED_POSITION = new THREE.Vector3();
+const CAM_POSITION = new THREE.Vector3();
+const FLAT_OFFSET = new THREE.Vector3();
+const MIN_DISTANCE = 1.5;
 const FOLLOW_LERP = 0.35;
 
 let hasHit = false;
@@ -49,7 +56,7 @@ function onSelectStart(): void {
 function onSelectEnd(): void {
   dragging = false;
   if (hasHit) {
-    PLACED_POSITION.copy(HIT_POSITION);
+    PLACED_POSITION.copy(FRAMED_POSITION);
     placed = true;
   }
 }
@@ -123,19 +130,38 @@ export function ArScene({ finishHex }: ArSceneProps) {
       }
     }
 
+    // Distance-clamp the hit so the true-scale sofa is always framable: if the
+    // aimed floor point is nearer than MIN_DISTANCE, push it out along the same
+    // horizontal direction (keeping the floor height). Scale is untouched.
+    if (hasHit) {
+      state.camera.getWorldPosition(CAM_POSITION);
+      FRAMED_POSITION.copy(HIT_POSITION);
+      FLAT_OFFSET.set(
+        HIT_POSITION.x - CAM_POSITION.x,
+        0,
+        HIT_POSITION.z - CAM_POSITION.z,
+      );
+      const dist = FLAT_OFFSET.length();
+      if (dist > 0.001 && dist < MIN_DISTANCE) {
+        FLAT_OFFSET.multiplyScalar(MIN_DISTANCE / dist);
+        FRAMED_POSITION.x = CAM_POSITION.x + FLAT_OFFSET.x;
+        FRAMED_POSITION.z = CAM_POSITION.z + FLAT_OFFSET.z;
+      }
+    }
+
     // Holding → follow the aim (touch-to-move); else hold the committed spot;
     // else (not placed yet) preview-follow the floor. When dragging without a
     // fresh hit, keep the last spot rather than flicker out.
     if (anchor !== undefined) {
       if (dragging) {
         anchor.visible = true;
-        if (hasHit) anchor.position.lerp(HIT_POSITION, FOLLOW_LERP);
+        if (hasHit) anchor.position.lerp(FRAMED_POSITION, FOLLOW_LERP);
       } else if (placed) {
         anchor.visible = true;
         anchor.position.copy(PLACED_POSITION);
       } else if (hasHit) {
         anchor.visible = true;
-        anchor.position.lerp(HIT_POSITION, FOLLOW_LERP);
+        anchor.position.lerp(FRAMED_POSITION, FOLLOW_LERP);
       } else {
         anchor.visible = false;
       }
@@ -144,7 +170,7 @@ export function ArScene({ finishHex }: ArSceneProps) {
     // The reticle guides while aiming or moving (hidden once at rest).
     if (reticle !== undefined) {
       reticle.visible = hasHit && (dragging || !placed);
-      if (hasHit) reticle.position.copy(HIT_POSITION);
+      if (hasHit) reticle.position.copy(FRAMED_POSITION);
     }
   });
 
