@@ -1,16 +1,18 @@
 /**
- * ArScene (Phase F3.1) — the immersive-ar scene graph.
+ * ArScene (Phase F3.1 + F3.2) — the immersive-ar scene graph.
  *
- * Foundation step: enter the session, continuously hit-test the floor from the
- * viewer, and let the true-scale sofa preview FOLLOW the detected surface (a
- * lerped follow, smoothing the noisy raw hit). A calm `<XRDomOverlay>` carries
- * the only chrome — a "Done" exit. Tap-to-commit placement, the +180ms shadow
- * bloom, gestures, and capture are F3.2–F3.4.
+ * F3.1 entered the session and let the true-scale sofa FOLLOW the floor.
+ * F3.2 adds the IKEA-style commit: aim → the reticle + ghosted sofa preview
+ * track the floor; tap (the session 'select') drops the sofa at that spot,
+ * where it stays anchored in world space while you walk around it. A grounding
+ * contact shadow sells the placement; "Move" re-enters aiming, "Done" exits.
+ *
+ * The +180ms shadow bloom / 96→100% settle choreography and gestures (1-finger
+ * move, 2-finger rotate, NO scale) and capture are F3.3 / F3.4.
  *
  * The product stage owns the canonical sofa Group (one Object3D, one graph), so
- * this mounts an independent CLONE with isolated materials — same pattern as the
- * Room Preview. WebXR is 1 unit = 1 metre, so the fitted 2.05 m sofa is true
- * scale in the room (the locked honest-AR promise; no resize).
+ * this mounts an independent CLONE with isolated materials. WebXR is 1 unit =
+ * 1 metre, so the fitted 2.05 m sofa is honest scale (the locked promise).
  *
  * No `react` import; @react-three/fiber + @react-three/xr + three only. State is
  * module-level (no useState/useRef), like the other render drivers.
@@ -23,14 +25,27 @@ import { hexToLinear, color, ar } from '@/tokens';
 import { linearColor } from '../core/colorBridge';
 import { fitToFootprint } from '../core/fitModel';
 import { ensureSofaLoading, getSofaScene } from '../scene/sofaAsset';
+import { ContactShadow } from '../scene/ContactShadow';
 import { Lighting } from '../scene/Lighting';
 import { exitAr } from './xrStore';
 
 const HIT_MATRIX = new THREE.Matrix4();
 const HIT_POSITION = new THREE.Vector3();
+const PLACED_POSITION = new THREE.Vector3();
 const FOLLOW_LERP = 0.35;
+
 let hasHit = false;
+let placed = false;
 let appliedFinish = '';
+let armedSession: XRSession | null = null;
+
+// Screen tap in handheld AR fires the session 'select' — commit the placement.
+function onSelect(): void {
+  if (!placed && hasHit) {
+    PLACED_POSITION.copy(HIT_POSITION);
+    placed = true;
+  }
+}
 
 interface ArSceneProps {
   readonly finishHex: string;
@@ -51,7 +66,15 @@ export function ArScene({ finishHex }: ArSceneProps) {
     hasHit = true;
   }, 'viewer');
 
-  useFrame((state) => {
+  useFrame((state, _delta, frame) => {
+    // Arm the tap-to-place listener once per session; reset on a fresh session.
+    const session = frame?.session;
+    if (session !== undefined && session !== armedSession) {
+      armedSession = session;
+      placed = false;
+      session.addEventListener('select', onSelect);
+    }
+
     const anchor = state.scene.getObjectByName('ar-anchor');
     const reticle = state.scene.getObjectByName('ar-reticle');
 
@@ -91,13 +114,22 @@ export function ArScene({ finishHex }: ArSceneProps) {
       }
     }
 
-    // Follow the floor (lerped) until a later phase commits the placement.
+    // Placed → hold the committed spot; otherwise preview-follow the floor.
     if (anchor !== undefined) {
-      anchor.visible = hasHit;
-      if (hasHit) anchor.position.lerp(HIT_POSITION, FOLLOW_LERP);
+      if (placed) {
+        anchor.visible = true;
+        anchor.position.copy(PLACED_POSITION);
+      } else if (hasHit) {
+        anchor.visible = true;
+        anchor.position.lerp(HIT_POSITION, FOLLOW_LERP);
+      } else {
+        anchor.visible = false;
+      }
     }
+
+    // The reticle only guides while aiming (hidden once committed).
     if (reticle !== undefined) {
-      reticle.visible = hasHit;
+      reticle.visible = hasHit && !placed;
       if (hasHit) reticle.position.copy(HIT_POSITION);
     }
   });
@@ -106,9 +138,12 @@ export function ArScene({ finishHex }: ArSceneProps) {
     <>
       <Lighting />
 
-      <group name="ar-anchor" visible={false} />
+      <group name="ar-anchor" visible={false}>
+        {/* Grounding shadow — moves with the sofa, sells the placement. */}
+        <ContactShadow opacity={0.5} />
+      </group>
 
-      {/* A soft ground ring that tracks the detected surface. */}
+      {/* A soft ground ring that tracks the detected surface while aiming. */}
       <mesh name="ar-reticle" visible={false} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.11, 0.15, 48]} />
         <meshBasicMaterial
@@ -127,8 +162,27 @@ export function ArScene({ finishHex }: ArSceneProps) {
             insetBlockEnd: '28px',
             display: 'flex',
             justifyContent: 'center',
+            gap: '12px',
           }}
         >
+          <button
+            type="button"
+            onClick={() => {
+              placed = false;
+            }}
+            style={{
+              minHeight: '48px',
+              padding: '0 24px',
+              borderRadius: '999px',
+              border: 'none',
+              backgroundColor: ar.surface,
+              color: color.ink,
+              fontSize: '15px',
+              fontWeight: 500,
+            }}
+          >
+            Move
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -139,8 +193,8 @@ export function ArScene({ finishHex }: ArSceneProps) {
               padding: '0 28px',
               borderRadius: '999px',
               border: 'none',
-              backgroundColor: ar.surface,
-              color: color.ink,
+              backgroundColor: color.accent,
+              color: color.canvasRaised,
               fontSize: '15px',
               fontWeight: 500,
             }}
