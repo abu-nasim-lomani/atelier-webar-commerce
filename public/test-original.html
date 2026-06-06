@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sofa AR — original vs optimised</title>
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"
+    ></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #f3eee7;
+        color: #2b2620;
+      }
+      section {
+        padding: 16px;
+      }
+      h2 {
+        margin: 8px 0;
+        font-size: 17px;
+      }
+      p {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: #6b6253;
+      }
+      model-viewer {
+        width: 100%;
+        height: 60vh;
+        background: #faf6ef;
+        border-radius: 12px;
+      }
+      .hint {
+        font-size: 12px;
+        color: #948a79;
+        padding: 0 16px 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2>1 · Original (2K lossless, metallic — untouched material)</h2>
+      <p>Tap the AR button (bottom-right) to place it in your room.</p>
+      <model-viewer
+        src="/models/hero-sofa-original.glb"
+        ar
+        ar-modes="scene-viewer webxr quick-look"
+        ar-scale="fixed"
+        camera-controls
+        shadow-intensity="1"
+        exposure="1"
+        alt="Original sofa"
+      ></model-viewer>
+    </section>
+
+    <section>
+      <h2>2 · Optimised (what the live site ships)</h2>
+      <p>De-metalled, JPEG colour, PNG normal, ~3.7 MB.</p>
+      <model-viewer
+        src="/models/hero-sofa.glb"
+        ar
+        ar-modes="scene-viewer webxr quick-look"
+        ar-scale="fixed"
+        camera-controls
+        shadow-intensity="1"
+        exposure="1"
+        alt="Optimised sofa"
+      ></model-viewer>
+    </section>
+
+    <p class="hint">
+      Both open in Google Scene Viewer (its own lighting). If #1 looks realistic
+      and #2 looks plastic, it's the optimisation. If both look the same, it's
+      the model/material and we tune rendering instead.
+    </p>
+  </body>
+</html>
