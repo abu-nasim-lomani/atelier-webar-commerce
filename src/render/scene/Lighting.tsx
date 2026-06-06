@@ -10,9 +10,12 @@
 export function Lighting() {
   return (
     <>
-      <ambientLight intensity={0.55} />
-      <hemisphereLight intensity={0.35} />
-      <directionalLight intensity={0.7} position={[3, 5, 2]} />
+      {/* IBL (scene.environment) now provides the ambient fill, so the manual
+          lights are dialled back — full manual + IBL overexposed the sofa to
+          white. A soft directional keeps form/definition. */}
+      <ambientLight intensity={0.25} />
+      <hemisphereLight intensity={0.15} />
+      <directionalLight intensity={0.6} position={[3, 5, 2]} />
     </>
   );
 }
