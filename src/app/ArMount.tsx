@@ -15,8 +15,15 @@ const ArCanvas = dynamic(() => import('@/render').then((m) => m.ArCanvas), {
 interface ArMountProps {
   readonly finishHex: string | null;
   readonly fitLabel: string | null;
+  readonly watermark: string;
 }
 
-export function ArMount({ finishHex, fitLabel }: ArMountProps): ReactElement {
-  return <ArCanvas finishHex={finishHex} fitLabel={fitLabel} />;
+export function ArMount({
+  finishHex,
+  fitLabel,
+  watermark,
+}: ArMountProps): ReactElement {
+  return (
+    <ArCanvas finishHex={finishHex} fitLabel={fitLabel} watermark={watermark} />
+  );
 }

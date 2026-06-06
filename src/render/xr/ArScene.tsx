@@ -43,6 +43,7 @@ const CAM_POSITION = new THREE.Vector3();
 const FLAT_OFFSET = new THREE.Vector3();
 const MIN_DISTANCE = 1.5;
 const RETICLE_LERP = 0.4;
+const ROTATE_STEP = Math.PI / 12; // 15° per tap
 
 let hasHit = false;
 let placed = false;
@@ -50,6 +51,7 @@ let appliedFinish: string | null = '';
 let armedSession: XRSession | null = null;
 let hintEl: HTMLElement | null = null;
 let spinnerEl: HTMLElement | null = null;
+let placedYaw = 0;
 
 // Screen tap (handheld AR 'select') drops the sofa at the circle, instantly.
 function onSelect(): void {
@@ -64,9 +66,11 @@ interface ArSceneProps {
   readonly finishHex: string | null;
   /** Fit verdict from the buyer's entered room size; shown once placed. */
   readonly fitLabel: string | null;
+  /** Brand line baked into the view so device screenshots carry it. */
+  readonly watermark: string;
 }
 
-export function ArScene({ finishHex, fitLabel }: ArSceneProps) {
+export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
   ensureSofaLoading();
 
   // Continuous floor hit-test cast from the viewer (screen centre).
@@ -87,6 +91,7 @@ export function ArScene({ finishHex, fitLabel }: ArSceneProps) {
     if (session !== undefined && session !== armedSession) {
       armedSession = session;
       placed = false;
+      placedYaw = 0;
       session.addEventListener('select', onSelect);
     }
 
@@ -152,7 +157,10 @@ export function ArScene({ finishHex, fitLabel }: ArSceneProps) {
     // Sofa is hidden until committed, then held at the placed spot.
     if (anchor !== undefined) {
       anchor.visible = placed;
-      if (placed) anchor.position.copy(PLACED_POSITION);
+      if (placed) {
+        anchor.position.copy(PLACED_POSITION);
+        anchor.rotation.y = placedYaw;
+      }
     }
 
     // The circle guides only while aiming (hidden once the sofa is down).
@@ -213,6 +221,25 @@ export function ArScene({ finishHex, fitLabel }: ArSceneProps) {
       </mesh>
 
       <XRDomOverlay>
+        {/* Brand watermark — baked into the view so a device screenshot of the
+            sofa in the room carries the company + product + true-scale line. */}
+        <div
+          style={{
+            position: 'absolute',
+            insetBlockStart: 'calc(20px + env(safe-area-inset-top, 0px))',
+            insetInlineStart: '20px',
+            padding: '7px 12px',
+            borderRadius: '999px',
+            backgroundColor: ar.surface,
+            color: color.ink,
+            fontSize: '12px',
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+          }}
+        >
+          {watermark}
+        </div>
+
         {/* Centre loading spinner while ARCore is still finding the floor. */}
         <div
           style={{
@@ -264,6 +291,42 @@ export function ArScene({ finishHex, fitLabel }: ArSceneProps) {
             gap: '12px',
           }}
         >
+          <button
+            type="button"
+            aria-label="Rotate left"
+            onClick={() => {
+              placedYaw += ROTATE_STEP;
+            }}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '999px',
+              border: 'none',
+              backgroundColor: ar.surface,
+              color: color.ink,
+              fontSize: '22px',
+            }}
+          >
+            ↺
+          </button>
+          <button
+            type="button"
+            aria-label="Rotate right"
+            onClick={() => {
+              placedYaw -= ROTATE_STEP;
+            }}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '999px',
+              border: 'none',
+              backgroundColor: ar.surface,
+              color: color.ink,
+              fontSize: '22px',
+            }}
+          >
+            ↻
+          </button>
           <button
             type="button"
             onClick={() => {

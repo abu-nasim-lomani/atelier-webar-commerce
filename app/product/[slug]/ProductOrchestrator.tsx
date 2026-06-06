@@ -211,6 +211,9 @@ export function ProductOrchestrator({
     }
   }
 
+  // Brand line shown in the AR view so device screenshots carry it.
+  const arWatermark = `${SITE.name} · ${product.name} · true to scale`;
+
   // Compose the Decision Artifact → pre-filled WhatsApp message → deep link.
   const artifact: DecisionArtifact | null =
     selectedFinish !== null
@@ -355,7 +358,11 @@ export function ProductOrchestrator({
       {/* WebXR host: mounted (hidden) once supported so enterAr() fires in the
           tap gesture and binds the session to this renderer. */}
       {webxrReady && selectedFinish !== null ? (
-        <ArMount finishHex={activeFinishHex} fitLabel={arFitLabel} />
+        <ArMount
+          finishHex={activeFinishHex}
+          fitLabel={arFitLabel}
+          watermark={arWatermark}
+        />
       ) : null}
 
       <RoomPreview
