@@ -39,7 +39,6 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import {
   ProductHero,
   Dimensions,
-  FinishSelector,
   FitChecker,
   ProductActionBar,
   ProductAssurance,
@@ -102,24 +101,15 @@ export function ProductOrchestrator({
   const selectedFinish =
     findFinishById(effectiveFinishId) ?? availableFinishes[0] ?? null;
 
-  // The DEFAULT finish renders natural (no tint) — the model's real fabric +
-  // wood colours, with the wooden legs staying wood (the single material can't
-  // tint fabric-only). Picking another finish multiplies the whole sofa to that
-  // tone. `null` means "natural / no tint".
-  const activeFinishHex =
-    selectedFinish !== null && selectedFinish.id !== product.defaultFinishId
-      ? selectedFinish.sRGBHex
-      : null;
+  // Finish-colour selection is removed for now: the sofa renders with its
+  // ORIGINAL material, untinted — exactly like model-viewer, which proved the
+  // asset is fine. `null` = natural / no tint, threaded to every render path.
+  const activeFinishHex: string | null = null;
 
-  // Push the active finish into the render layer's material bridge (or reset to
-  // natural). Re-fires only when the resolved tint actually changes.
+  // Reset the sofa to its natural (untinted) material once.
   useEffect(() => {
-    if (activeFinishHex === null) {
-      materialBridge.setNatural();
-    } else {
-      materialBridge.setFinishHex(activeFinishHex);
-    }
-  }, [activeFinishHex]);
+    materialBridge.setNatural();
+  }, []);
 
   // Capability-driven AR launch (Phase F1). Resolved client-side after mount
   // so SSR and the client agree on the initial render (button hidden) — the
@@ -222,16 +212,6 @@ export function ProductOrchestrator({
             <Divider />
 
             <Dimensions dimensionsMeters={product.dimensionsMeters} />
-
-            <Divider />
-
-            <FinishSelector
-              finishes={availableFinishes}
-              selectedId={
-                selectedFinish !== null ? selectedFinish.id : effectiveFinishId
-              }
-              onSelect={setFinish}
-            />
 
             <Divider />
 
