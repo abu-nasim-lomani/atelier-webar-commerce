@@ -26,6 +26,7 @@ import { HERO_SOFA } from '@config/hero-asset';
 import { hexToLinear, color, ar } from '@/tokens';
 import { linearColor } from '../core/colorBridge';
 import { fitToFootprint } from '../core/fitModel';
+import { isolateSofaMaterials } from '../core/isolateSofaMaterials';
 import { ensureSofaLoading, getSofaScene } from '../scene/sofaAsset';
 import { ContactShadow } from '../scene/ContactShadow';
 import { Lighting } from '../scene/Lighting';
@@ -95,6 +96,8 @@ export function ArScene({ finishHex }: ArSceneProps) {
       if (source !== null) {
         const clone = source.clone(true);
         clone.name = 'ar-sofa';
+        // Own materials + textures so this second renderer uploads them.
+        isolateSofaMaterials(clone);
         fitToFootprint(clone, HERO_SOFA.dimensionsMeters.width);
         anchor.add(clone);
         appliedFinish = '';
@@ -113,13 +116,12 @@ export function ArScene({ finishHex }: ArSceneProps) {
           const lin = hexToLinear(finishHex);
           tint.setRGB(lin.r, lin.g, lin.b, THREE.LinearSRGBColorSpace);
         }
+        // Materials are already isolated at mount — just recolour them.
         sofa.traverse((obj) => {
           if (!(obj instanceof THREE.Mesh)) return;
           const material: unknown = obj.material;
           if (material instanceof THREE.MeshStandardMaterial) {
-            const isolated = material.clone();
-            isolated.color.copy(tint);
-            obj.material = isolated;
+            material.color.copy(tint);
           }
         });
         appliedFinish = finishHex;

@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { HERO_SOFA } from '@config/hero-asset';
 import { hexToLinear } from '@/tokens';
 import { fitToFootprint } from '../core/fitModel';
+import { isolateSofaMaterials } from '../core/isolateSofaMaterials';
 import { ensureSofaLoading, getSofaScene } from './sofaAsset';
 
 const BREATHE_PERIOD_S = 9;
@@ -57,20 +58,20 @@ export function RoomSofa({ finishHex, reducedMotion }: RoomSofaProps) {
         const clone = source.clone(true);
         clone.name = 'room-sofa';
         clone.rotation.y = SOFA_YAW;
+        // Own materials + textures so this second renderer uploads them.
+        isolateSofaMaterials(clone);
 
-        // `null` finish = natural: keep the cloned material's own colour (the
-        // GLB's white baseColourFactor) so the texture shows untinted.
+        // `null` finish = natural: leave the texture untinted (white).
         const color = finishHex !== null ? linearFromHex(finishHex) : null;
-        clone.traverse((obj) => {
-          if (!(obj instanceof THREE.Mesh)) return;
-          // `Mesh#material` is typed `any` — funnel via unknown + a real guard.
-          const material: unknown = obj.material;
-          if (material instanceof THREE.MeshStandardMaterial) {
-            const independent = material.clone();
-            if (color !== null) independent.color.copy(color);
-            obj.material = independent;
-          }
-        });
+        if (color !== null) {
+          clone.traverse((obj) => {
+            if (!(obj instanceof THREE.Mesh)) return;
+            const material: unknown = obj.material;
+            if (material instanceof THREE.MeshStandardMaterial) {
+              material.color.copy(color);
+            }
+          });
+        }
 
         fitToFootprint(clone, HERO_SOFA.dimensionsMeters.width);
         anchor.add(clone);
