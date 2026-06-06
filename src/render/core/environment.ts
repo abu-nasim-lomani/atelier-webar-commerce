@@ -20,9 +20,8 @@ export function applyNeutralEnvironment(
   const pmrem = new THREE.PMREMGenerator(gl);
   const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environment = envTexture;
-  // TEMP DIAGNOSTIC: IBL off to isolate whether the white sofa is IBL
-  // overexposure or a missing texture. If the texture shows under plain lights,
-  // IBL was the culprit; if still white, it's the material/texture.
-  scene.environmentIntensity = 0;
+  // Neutral IBL drives the realism. 0.6 keeps the exposure where model-viewer's
+  // neutral env sits (RoomEnvironment is a bit brighter) without washing out.
+  scene.environmentIntensity = 0.6;
   pmrem.dispose();
 }

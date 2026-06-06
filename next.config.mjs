@@ -34,7 +34,10 @@ const csp = [
   // va.vercel-scripts.com = Vercel Analytics / Speed Insights script + beacon
   // (same-origin /_vercel/* on Vercel; the CDN host covers dev/preview).
   `script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ''}`,
-  `connect-src 'self' https://va.vercel-scripts.com${isDev ? ' ws:' : ''}`,
+  // blob: + data: are required: GLTFLoader decodes embedded GLB textures by
+  // fetching a blob: URL — without this, connect-src blocks the fetch, the
+  // textures silently fail to load, and the sofa renders untextured (white).
+  `connect-src 'self' blob: data: https://va.vercel-scripts.com${isDev ? ' ws:' : ''}`,
   "worker-src 'self' blob:",
   "form-action 'self'",
 ].join('; ');

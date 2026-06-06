@@ -10,11 +10,10 @@
 export function Lighting() {
   return (
     <>
-      {/* TEMP DIAGNOSTIC: very low FLAT ambient only (IBL off), so it can NEVER
-          overexpose. If the sofa shows brown wood legs + grey-taupe fabric, the
-          texture works (earlier white was overexposure). If it's a uniform pale
-          grey with no colour variation, the texture is not being applied. */}
-      <ambientLight intensity={0.5} />
+      {/* IBL (scene.environment) does the lighting, like model-viewer. A soft
+          directional key adds form; a tiny ambient is the floor. */}
+      <ambientLight intensity={0.15} />
+      <directionalLight intensity={0.3} position={[3, 5, 2]} />
     </>
   );
 }
