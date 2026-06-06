@@ -103,6 +103,15 @@ async function main(): Promise<void> {
     }),
   );
 
+  // This sofa GLB ships mis-authored as fully metallic (metallicFactor 1).
+  // Fabric and wood are dielectric — with no environment map a metallic surface
+  // reflects nothing and renders dark/flat ("plastic clay"), burying the
+  // baseColour texture. Force non-metal so the texture reads correctly under
+  // the scene lights everywhere (web stage, WebXR, Scene Viewer, Quick Look).
+  for (const material of document.getRoot().listMaterials()) {
+    material.setMetallicFactor(0);
+  }
+
   // Native AR reads intrinsic units — bake true scale into the file.
   fitToTrueScale(document);
 
