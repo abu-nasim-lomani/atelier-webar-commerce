@@ -78,6 +78,10 @@ const nextConfig = {
         headers: [
           { key: 'Content-Type', value: 'model/gltf-binary' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
+          // The model keeps the same filename across updates, so force a
+          // revalidation each load (cheap 304 when unchanged) — otherwise a
+          // stale cached GLB hides every model fix, as it did here.
+          { key: 'Cache-Control', value: 'no-cache' },
         ],
       },
     ];
