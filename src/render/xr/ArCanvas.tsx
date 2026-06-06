@@ -19,9 +19,10 @@ import { ArScene } from './ArScene';
 
 interface ArCanvasProps {
   readonly finishHex: string | null;
+  readonly fitLabel: string | null;
 }
 
-export function ArCanvas({ finishHex }: ArCanvasProps) {
+export function ArCanvas({ finishHex, fitLabel }: ArCanvasProps) {
   return (
     <div
       aria-hidden="true"
@@ -47,7 +48,7 @@ export function ArCanvas({ finishHex }: ArCanvasProps) {
         }}
       >
         <XR store={xrStore}>
-          <ArScene finishHex={finishHex} />
+          <ArScene finishHex={finishHex} fitLabel={fitLabel} />
         </XR>
       </Canvas>
     </div>

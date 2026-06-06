@@ -14,8 +14,9 @@ const ArCanvas = dynamic(() => import('@/render').then((m) => m.ArCanvas), {
 
 interface ArMountProps {
   readonly finishHex: string | null;
+  readonly fitLabel: string | null;
 }
 
-export function ArMount({ finishHex }: ArMountProps): ReactElement {
-  return <ArCanvas finishHex={finishHex} />;
+export function ArMount({ finishHex, fitLabel }: ArMountProps): ReactElement {
+  return <ArCanvas finishHex={finishHex} fitLabel={fitLabel} />;
 }

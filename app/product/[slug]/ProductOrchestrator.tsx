@@ -200,6 +200,17 @@ export function ProductOrchestrator({
       ? null
       : checkFit(roomWidth, product.dimensionsMeters.width);
 
+  // Same verdict, phrased for the AR overlay (shown once the sofa is placed).
+  let arFitLabel: string | null = null;
+  if (fitResult !== null) {
+    if (fitResult.verdict === 'tooLarge') {
+      arFitLabel = 'Larger than the space you entered';
+    } else {
+      const word = fitResult.verdict === 'fits' ? 'Fits' : 'Tight fit';
+      arFitLabel = `${word} — ${fitResult.clearanceMeters.toFixed(2)} m to spare`;
+    }
+  }
+
   // Compose the Decision Artifact → pre-filled WhatsApp message → deep link.
   const artifact: DecisionArtifact | null =
     selectedFinish !== null
@@ -344,7 +355,7 @@ export function ProductOrchestrator({
       {/* WebXR host: mounted (hidden) once supported so enterAr() fires in the
           tap gesture and binds the session to this renderer. */}
       {webxrReady && selectedFinish !== null ? (
-        <ArMount finishHex={activeFinishHex} />
+        <ArMount finishHex={activeFinishHex} fitLabel={arFitLabel} />
       ) : null}
 
       <RoomPreview

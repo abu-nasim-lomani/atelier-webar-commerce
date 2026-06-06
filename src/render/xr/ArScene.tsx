@@ -62,9 +62,11 @@ function onSelect(): void {
 interface ArSceneProps {
   /** sRGB hex to tint the sofa, or `null` for the natural (untinted) look. */
   readonly finishHex: string | null;
+  /** Fit verdict from the buyer's entered room size; shown once placed. */
+  readonly fitLabel: string | null;
 }
 
-export function ArScene({ finishHex }: ArSceneProps) {
+export function ArScene({ finishHex, fitLabel }: ArSceneProps) {
   ensureSofaLoading();
 
   // Continuous floor hit-test cast from the viewer (screen centre).
@@ -165,7 +167,14 @@ export function ArScene({ finishHex }: ArSceneProps) {
     if (hintEl === null) hintEl = document.getElementById('ar-scan-hint');
     if (hintEl !== null) {
       if (placed) {
-        hintEl.style.opacity = '0';
+        // Once down, show the buyer's measured fit verdict (if they entered a
+        // room size) — connecting the page's Fit Checker to the AR view.
+        if (fitLabel !== null) {
+          hintEl.style.opacity = '1';
+          hintEl.textContent = fitLabel;
+        } else {
+          hintEl.style.opacity = '0';
+        }
       } else {
         hintEl.style.opacity = '1';
         hintEl.textContent = hasHit
