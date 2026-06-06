@@ -20,8 +20,9 @@ export function applyNeutralEnvironment(
   const pmrem = new THREE.PMREMGenerator(gl);
   const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environment = envTexture;
-  // Subtle: enough for realistic soft reflections without washing the sofa to
-  // white (full-strength IBL on top of the scene lights overexposed it).
-  scene.environmentIntensity = 0.5;
+  // Full-strength IBL drives the look (like model-viewer, which renders this
+  // exact GLB realistically off the environment alone). The manual lights are
+  // now minimal so they don't flatten it or overexpose.
+  scene.environmentIntensity = 1.0;
   pmrem.dispose();
 }
