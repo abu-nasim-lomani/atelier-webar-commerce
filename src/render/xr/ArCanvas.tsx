@@ -13,6 +13,7 @@
 import { Canvas } from '@react-three/fiber';
 import { XR } from '@react-three/xr';
 import { RENDERER } from '../core/rendererConfig';
+import { applyNeutralEnvironment } from '../core/environment';
 import { xrStore } from './xrStore';
 import { ArScene } from './ArScene';
 
@@ -35,13 +36,14 @@ export function ArCanvas({ finishHex }: ArCanvasProps) {
       }}
     >
       <Canvas
-        onCreated={({ gl }) => {
+        onCreated={({ gl, scene }) => {
           // Match the hero stage + Room Preview colour pipeline so the sofa
-          // reads identically in AR (ACES tone map + exposure + sRGB output).
-          // Missing this is why the AR sofa looked off vs the product page.
+          // reads identically in AR (ACES tone map + exposure + sRGB output)
+          // plus the neutral IBL so it looks like real fabric, not plastic.
           gl.toneMapping = RENDERER.toneMapping;
           gl.toneMappingExposure = RENDERER.exposure;
           gl.outputColorSpace = RENDERER.outputColorSpace;
+          applyNeutralEnvironment(gl, scene);
         }}
       >
         <XR store={xrStore}>

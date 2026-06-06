@@ -20,6 +20,7 @@ import { Canvas } from '@react-three/fiber';
 import { detectTier } from './core/deviceProfile';
 import { getPreset } from './core/quality';
 import { RENDERER } from './core/rendererConfig';
+import { applyNeutralEnvironment } from './core/environment';
 import { Lighting } from './scene/Lighting';
 import { ContactShadow } from './scene/ContactShadow';
 import { RoomSofa } from './scene/RoomSofa';
@@ -61,10 +62,11 @@ export function RoomPreviewCanvas({
         near: CAMERA_NEAR,
         far: CAMERA_FAR,
       }}
-      onCreated={({ gl, camera }) => {
+      onCreated={({ gl, camera, scene }) => {
         gl.toneMapping = RENDERER.toneMapping;
         gl.toneMappingExposure = RENDERER.exposure;
         gl.outputColorSpace = RENDERER.outputColorSpace;
+        applyNeutralEnvironment(gl, scene);
         camera.lookAt(CAMERA_TARGET[0], CAMERA_TARGET[1], CAMERA_TARGET[2]);
       }}
     >

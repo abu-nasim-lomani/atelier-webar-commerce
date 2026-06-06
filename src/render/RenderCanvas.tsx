@@ -20,6 +20,7 @@ import { detectTier } from './core/deviceProfile';
 import { getPreset } from './core/quality';
 import { CAMERA, framingForAspect } from './core/cameraRig';
 import { RENDERER } from './core/rendererConfig';
+import { applyNeutralEnvironment } from './core/environment';
 import { renderController } from './controller';
 import { Stage } from './scene/Stage';
 import { Diagnostics } from './scene/Diagnostics';
@@ -56,11 +57,14 @@ export function RenderCanvas() {
         far: CAMERA.far,
       }}
       onCreated={(state) => {
-        const { gl, camera, invalidate } = state;
+        const { gl, camera, invalidate, scene } = state;
 
         gl.toneMapping = RENDERER.toneMapping;
         gl.toneMappingExposure = RENDERER.exposure;
         gl.outputColorSpace = RENDERER.outputColorSpace;
+
+        // Neutral IBL so the sofa reads as real fabric/wood, not flat plastic.
+        applyNeutralEnvironment(gl, scene);
 
         camera.lookAt(CAMERA.target[0], CAMERA.target[1], CAMERA.target[2]);
 
