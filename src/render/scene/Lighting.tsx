@@ -10,12 +10,11 @@
 export function Lighting() {
   return (
     <>
-      {/* TEMP DIAGNOSTIC: plain lighting (IBL off) to reveal whether the sofa
-          texture renders at all. Grey fabric + brown legs = texture works;
-          still white = texture not applied. */}
+      {/* TEMP DIAGNOSTIC: very low FLAT ambient only (IBL off), so it can NEVER
+          overexpose. If the sofa shows brown wood legs + grey-taupe fabric, the
+          texture works (earlier white was overexposure). If it's a uniform pale
+          grey with no colour variation, the texture is not being applied. */}
       <ambientLight intensity={0.5} />
-      <hemisphereLight intensity={0.3} />
-      <directionalLight intensity={0.9} position={[3, 5, 2]} />
     </>
   );
 }
