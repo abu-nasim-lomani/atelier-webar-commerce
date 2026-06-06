@@ -48,6 +48,7 @@ let hasHit = false;
 let placed = false;
 let appliedFinish: string | null = '';
 let armedSession: XRSession | null = null;
+let hintEl: HTMLElement | null = null;
 
 // Screen tap (handheld AR 'select') drops the sofa at the circle, instantly.
 function onSelect(): void {
@@ -156,6 +157,21 @@ export function ArScene({ finishHex }: ArSceneProps) {
       reticle.visible = hasHit && !placed;
       if (hasHit && !placed) reticle.position.lerp(FRAMED_POSITION, RETICLE_LERP);
     }
+
+    // Scanning / aiming hint — reassures the user while ARCore finds the floor
+    // (the sofa can't appear until a surface is detected, which takes a moment)
+    // and then guides the tap. Driven imperatively (render layer = no React).
+    if (hintEl === null) hintEl = document.getElementById('ar-scan-hint');
+    if (hintEl !== null) {
+      if (placed) {
+        hintEl.style.opacity = '0';
+      } else {
+        hintEl.style.opacity = '1';
+        hintEl.textContent = hasHit
+          ? 'Tap to place it'
+          : 'Point at the floor — move your phone slowly';
+      }
+    }
   });
 
   return (
@@ -180,6 +196,33 @@ export function ArScene({ finishHex }: ArSceneProps) {
       </mesh>
 
       <XRDomOverlay>
+        {/* Scanning / aiming hint — shows immediately so the camera view never
+            looks frozen while ARCore locates the floor. Toggled in useFrame. */}
+        <div
+          style={{
+            position: 'absolute',
+            insetInline: 0,
+            insetBlockStart: '28px',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <span
+            id="ar-scan-hint"
+            style={{
+              padding: '10px 18px',
+              borderRadius: '999px',
+              backgroundColor: ar.surface,
+              color: color.ink,
+              fontSize: '14px',
+              fontWeight: 500,
+              transition: 'opacity 200ms ease',
+            }}
+          >
+            Point at the floor — move your phone slowly
+          </span>
+        </div>
+
         <div
           style={{
             position: 'absolute',
