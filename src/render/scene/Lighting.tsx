@@ -10,11 +10,11 @@
 export function Lighting() {
   return (
     <>
-      {/* IBL (scene.environment, full strength) does the lighting, like
-          model-viewer. Just a soft directional key for form/definition + a
-          tiny ambient as a floor. More than this flattens / overexposes it. */}
-      <ambientLight intensity={0.1} />
-      <directionalLight intensity={0.4} position={[3, 5, 2]} />
+      {/* IBL (scene.environment) does the lighting, like model-viewer. Only a
+          gentle directional key for form + a tiny ambient floor — anything
+          stronger overexposed the sofa to white on top of the IBL. */}
+      <ambientLight intensity={0.08} />
+      <directionalLight intensity={0.25} position={[3, 5, 2]} />
     </>
   );
 }
