@@ -17,7 +17,7 @@ const RoomPreviewCanvas = dynamic(
 );
 
 interface RoomPreviewMountProps {
-  readonly finishHex: string;
+  readonly finishHex: string | null;
   readonly reducedMotion: boolean;
 }
 

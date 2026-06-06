@@ -29,6 +29,16 @@ export const materialBridge = {
     pending = true;
     renderController.requestFrame();
   },
+  /**
+   * Reset to the model's natural look (no tint): a white multiplier so the
+   * baseColour texture shows as authored. The default finish renders this way.
+   */
+  setNatural(): void {
+    if (target === null) target = new THREE.Color();
+    target.setRGB(1, 1, 1, THREE.LinearSRGBColorSpace);
+    pending = true;
+    renderController.requestFrame();
+  },
   /** Render-side: returns the colour if it's been updated since last consume. */
   consume(): THREE.Color | null {
     if (!pending) return null;

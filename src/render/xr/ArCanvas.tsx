@@ -17,7 +17,7 @@ import { xrStore } from './xrStore';
 import { ArScene } from './ArScene';
 
 interface ArCanvasProps {
-  readonly finishHex: string;
+  readonly finishHex: string | null;
 }
 
 export function ArCanvas({ finishHex }: ArCanvasProps) {

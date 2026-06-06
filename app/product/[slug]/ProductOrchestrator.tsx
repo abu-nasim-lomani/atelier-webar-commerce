@@ -102,14 +102,24 @@ export function ProductOrchestrator({
   const selectedFinish =
     findFinishById(effectiveFinishId) ?? availableFinishes[0] ?? null;
 
-  // Push the selected finish colour into the render layer's material bridge.
-  // Finish object identity is stable for the same id, so this effect only
-  // re-fires when the buyer actually changes the selection.
+  // The DEFAULT finish renders natural (no tint) — the model's real fabric +
+  // wood colours, with the wooden legs staying wood (the single material can't
+  // tint fabric-only). Picking another finish multiplies the whole sofa to that
+  // tone. `null` means "natural / no tint".
+  const activeFinishHex =
+    selectedFinish !== null && selectedFinish.id !== product.defaultFinishId
+      ? selectedFinish.sRGBHex
+      : null;
+
+  // Push the active finish into the render layer's material bridge (or reset to
+  // natural). Re-fires only when the resolved tint actually changes.
   useEffect(() => {
-    if (selectedFinish !== null) {
-      materialBridge.setFinishHex(selectedFinish.sRGBHex);
+    if (activeFinishHex === null) {
+      materialBridge.setNatural();
+    } else {
+      materialBridge.setFinishHex(activeFinishHex);
     }
-  }, [selectedFinish]);
+  }, [activeFinishHex]);
 
   // Capability-driven AR launch (Phase F1). Resolved client-side after mount
   // so SSR and the client agree on the initial render (button hidden) — the
@@ -265,7 +275,7 @@ export function ProductOrchestrator({
       {/* WebXR host: mounted (hidden) once supported so enterAr() fires in the
           tap gesture and binds the session to this renderer. */}
       {webxrReady && selectedFinish !== null ? (
-        <ArMount finishHex={selectedFinish.sRGBHex} />
+        <ArMount finishHex={activeFinishHex} />
       ) : null}
 
       <RoomPreview
@@ -280,7 +290,7 @@ export function ProductOrchestrator({
         stage={
           selectedFinish !== null ? (
             <RoomPreviewMount
-              finishHex={selectedFinish.sRGBHex}
+              finishHex={activeFinishHex}
               reducedMotion={reducedMotion}
             />
           ) : undefined

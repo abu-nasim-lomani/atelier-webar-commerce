@@ -45,7 +45,7 @@ const RETICLE_LERP = 0.4;
 
 let hasHit = false;
 let placed = false;
-let appliedFinish = '';
+let appliedFinish: string | null = '';
 let armedSession: XRSession | null = null;
 
 // Screen tap (handheld AR 'select') drops the sofa at the circle, instantly.
@@ -57,7 +57,8 @@ function onSelect(): void {
 }
 
 interface ArSceneProps {
-  readonly finishHex: string;
+  /** sRGB hex to tint the sofa, or `null` for the natural (untinted) look. */
+  readonly finishHex: string | null;
 }
 
 export function ArScene({ finishHex }: ArSceneProps) {
@@ -104,13 +105,14 @@ export function ArScene({ finishHex }: ArSceneProps) {
     if (anchor !== undefined && finishHex !== appliedFinish) {
       const sofa = anchor.getObjectByName('ar-sofa');
       if (sofa !== undefined) {
-        const lin = hexToLinear(finishHex);
-        const tint = new THREE.Color().setRGB(
-          lin.r,
-          lin.g,
-          lin.b,
-          THREE.LinearSRGBColorSpace,
-        );
+        const tint = new THREE.Color();
+        if (finishHex === null) {
+          // Natural: white multiplier → the baseColour texture shows as-is.
+          tint.setRGB(1, 1, 1, THREE.LinearSRGBColorSpace);
+        } else {
+          const lin = hexToLinear(finishHex);
+          tint.setRGB(lin.r, lin.g, lin.b, THREE.LinearSRGBColorSpace);
+        }
         sofa.traverse((obj) => {
           if (!(obj instanceof THREE.Mesh)) return;
           const material: unknown = obj.material;

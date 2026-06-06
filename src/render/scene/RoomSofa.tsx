@@ -27,8 +27,8 @@ const BREATHE_AMPLITUDE_RAD = (6 * Math.PI) / 180;
 const SOFA_YAW = 0;
 
 interface RoomSofaProps {
-  /** sRGB hex of the buyer's selected finish (plain string from the app). */
-  readonly finishHex: string;
+  /** sRGB hex to tint the sofa, or `null` for the natural (untinted) look. */
+  readonly finishHex: string | null;
   /** Hold the breathing still when the user prefers reduced motion. */
   readonly reducedMotion: boolean;
 }
@@ -58,14 +58,16 @@ export function RoomSofa({ finishHex, reducedMotion }: RoomSofaProps) {
         clone.name = 'room-sofa';
         clone.rotation.y = SOFA_YAW;
 
-        const color = linearFromHex(finishHex);
+        // `null` finish = natural: keep the cloned material's own colour (the
+        // GLB's white baseColourFactor) so the texture shows untinted.
+        const color = finishHex !== null ? linearFromHex(finishHex) : null;
         clone.traverse((obj) => {
           if (!(obj instanceof THREE.Mesh)) return;
           // `Mesh#material` is typed `any` — funnel via unknown + a real guard.
           const material: unknown = obj.material;
           if (material instanceof THREE.MeshStandardMaterial) {
             const independent = material.clone();
-            independent.color.copy(color);
+            if (color !== null) independent.color.copy(color);
             obj.material = independent;
           }
         });

@@ -36,7 +36,7 @@ const CAMERA_FAR = 100;
 const SHADOW_REST_OPACITY = 0.5;
 
 interface RoomPreviewCanvasProps {
-  readonly finishHex: string;
+  readonly finishHex: string | null;
   readonly reducedMotion: boolean;
 }
 

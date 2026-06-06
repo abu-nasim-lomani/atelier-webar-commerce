@@ -13,7 +13,7 @@ const ArCanvas = dynamic(() => import('@/render').then((m) => m.ArCanvas), {
 });
 
 interface ArMountProps {
-  readonly finishHex: string;
+  readonly finishHex: string | null;
 }
 
 export function ArMount({ finishHex }: ArMountProps): ReactElement {
