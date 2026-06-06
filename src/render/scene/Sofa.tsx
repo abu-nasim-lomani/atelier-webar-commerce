@@ -10,6 +10,7 @@
  * No `react`; R3F `useFrame` + `three` via helpers only.
  */
 import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import { HERO_SOFA } from '@config/hero-asset';
 import { renderController } from '../controller';
 import { fitToFootprint } from '../core/fitModel';
@@ -32,6 +33,20 @@ export function Sofa() {
 
     sofa.name = 'sofa-model';
     sofa.rotation.y = SOFA_YAW;
+
+    // TEMP DIAGNOSTIC: unlit MeshBasic(map) on the HERO (first renderer, the
+    // original loaded material — no clone). If the product page shows the
+    // texture, the loader + first renderer are fine and AR's white is the
+    // second-renderer clone; if the product page is also white, the map never
+    // attaches (a loader problem affecting everything).
+    sofa.traverse((obj) => {
+      if (!(obj instanceof THREE.Mesh)) return;
+      const material: unknown = obj.material;
+      if (material instanceof THREE.MeshStandardMaterial) {
+        obj.material = new THREE.MeshBasicMaterial({ map: material.map });
+      }
+    });
+
     fitToFootprint(sofa, HERO_SOFA.dimensionsMeters.width);
     anchor.add(sofa);
 
