@@ -28,6 +28,7 @@ import {
   enterAr,
   ensureSofaLoading,
   isSofaLoaded,
+  renderController,
 } from '@/render';
 import { resolveArLaunch } from '@/ar';
 import { isImmersiveArSupported } from '@/capability';
@@ -43,6 +44,8 @@ import {
   ProductActionBar,
   ProductAssurance,
   RoomPreview,
+  ProductRecap,
+  composeDecisionCard,
 } from '@/ui/modules/product';
 import { Section, Container, Stack, Text, Divider } from '@/ui/primitives';
 import styles from './ProductOrchestrator.module.css';
@@ -53,6 +56,17 @@ interface ProductOrchestratorProps {
 
 function formatPrice(amount: number, currency: 'BDT'): string {
   return `${amount.toLocaleString('en-IN')} ${currency}`;
+}
+
+function fitWord(verdict: 'fits' | 'tight' | 'tooLarge'): string {
+  switch (verdict) {
+    case 'fits':
+      return 'fits comfortably';
+    case 'tight':
+      return 'a tight fit';
+    case 'tooLarge':
+      return 'too large';
+  }
 }
 
 export function ProductOrchestrator({
@@ -194,6 +208,74 @@ export function ProductOrchestrator({
   const message = artifact !== null ? composeWhatsAppMessage(artifact) : '';
   const handoffUrl = buildWhatsAppUrl(message);
 
+  // Decision Artifact: snapshot the configured sofa → compose the brand card →
+  // Web Share ("send to family"), with a download + WhatsApp fallback where
+  // Web Share with files isn't available (most desktops).
+  const [sharing, setSharing] = useState(false);
+  const handleShare = async (): Promise<void> => {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      renderController.requestFrame();
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          resolve();
+        });
+      });
+
+      const d = product.dimensionsMeters;
+      const fitLabel =
+        fitResult === null
+          ? null
+          : `In your space: ${fitWord(fitResult.verdict)} (${fitResult.clearanceMeters.toFixed(
+              2,
+            )} m clearance)`;
+
+      const blob = await composeDecisionCard({
+        snapshotDataUrl: renderController.captureDataUrl(),
+        brand: SITE.name,
+        productName: product.name,
+        tagline: product.tagline,
+        dimensionsLabel: `${d.width.toFixed(2)} × ${d.depth.toFixed(2)} × ${d.height.toFixed(
+          2,
+        )} m`,
+        priceLabel: formatPrice(product.price.amount, product.price.currency),
+        fitLabel,
+      });
+
+      const file =
+        blob !== null
+          ? new File([blob], 'atelier-sofa.png', { type: 'image/png' })
+          : null;
+      const shareData =
+        file !== null
+          ? { files: [file], text: message, title: product.name }
+          : null;
+
+      if (
+        shareData !== null &&
+        typeof navigator.canShare === 'function' &&
+        navigator.canShare(shareData)
+      ) {
+        await navigator.share(shareData);
+      } else {
+        if (blob !== null) {
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = 'atelier-sofa.png';
+          anchor.click();
+          URL.revokeObjectURL(url);
+        }
+        window.open(handoffUrl, '_blank', 'noopener');
+      }
+    } catch {
+      // Share dismissed or unavailable — stay calm, no error surface.
+    } finally {
+      setSharing(false);
+    }
+  };
+
   return (
     <>
       <ProductHero product={product} stage={<CanvasMount />} />
@@ -226,6 +308,13 @@ export function ProductOrchestrator({
       </Section>
 
       <ProductAssurance />
+
+      <ProductRecap
+        onShare={() => {
+          void handleShare();
+        }}
+        sharing={sharing}
+      />
 
       {/* Spacer so content scrolls clear of the fixed action bar. */}
       <div className={styles.actionBarSpacer} aria-hidden="true" />

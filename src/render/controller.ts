@@ -16,6 +16,8 @@ interface RenderController {
   register: (gl: THREE.WebGLRenderer, invalidate: Invalidate) => void;
   getRenderer: () => THREE.WebGLRenderer | null;
   requestFrame: () => void;
+  /** PNG data URL of the current frame (needs gl preserveDrawingBuffer). */
+  captureDataUrl: () => string | null;
   setContextHandlers: (cleanup: Cleanup) => void;
   markContextLost: () => void;
   markContextRestored: () => void;
@@ -38,6 +40,10 @@ export const renderController: RenderController = {
   },
   requestFrame() {
     if (invalidate !== null && !contextLost) invalidate();
+  },
+  captureDataUrl() {
+    if (gl === null) return null;
+    return gl.domElement.toDataURL('image/png');
   },
   setContextHandlers(cleanup) {
     contextCleanup = cleanup;

@@ -45,6 +45,9 @@ export function RenderCanvas() {
         antialias: preset.antialias,
         alpha: true,
         powerPreference: preset.powerPreference,
+        // Keep the last frame readable so the Decision Artifact can snapshot
+        // the configured sofa (toDataURL needs the buffer preserved).
+        preserveDrawingBuffer: true,
       }}
       camera={{
         fov: framing.fov,

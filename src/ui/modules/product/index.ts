@@ -9,6 +9,8 @@ export { FitChecker } from './FitChecker';
 export { ProductActionBar } from './ProductActionBar';
 export { ProductAssurance } from './ProductAssurance';
 export { RoomPreview } from './RoomPreview';
+export { ProductRecap } from './ProductRecap';
+export { composeDecisionCard, type DecisionCardInput } from './decisionCard';
 export type {
   ProductSummary,
   FinishOption,
