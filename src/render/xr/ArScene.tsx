@@ -49,6 +49,7 @@ let placed = false;
 let appliedFinish: string | null = '';
 let armedSession: XRSession | null = null;
 let hintEl: HTMLElement | null = null;
+let spinnerEl: HTMLElement | null = null;
 
 // Screen tap (handheld AR 'select') drops the sofa at the circle, instantly.
 function onSelect(): void {
@@ -172,6 +173,13 @@ export function ArScene({ finishHex }: ArSceneProps) {
           : 'Point at the floor — move your phone slowly';
       }
     }
+
+    // Centre loading spinner — visible while still scanning (no floor circle
+    // yet), hidden the moment the reticle appears or the sofa is placed.
+    if (spinnerEl === null) spinnerEl = document.getElementById('ar-spinner');
+    if (spinnerEl !== null) {
+      spinnerEl.style.display = !hasHit && !placed ? 'block' : 'none';
+    }
   });
 
   return (
@@ -196,6 +204,20 @@ export function ArScene({ finishHex }: ArSceneProps) {
       </mesh>
 
       <XRDomOverlay>
+        {/* Centre loading spinner while ARCore is still finding the floor. */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <div id="ar-spinner" className="ar-scan-spinner" />
+        </div>
+
         {/* Scanning / aiming hint — shows immediately so the camera view never
             looks frozen while ARCore locates the floor. Toggled in useFrame. */}
         <div
