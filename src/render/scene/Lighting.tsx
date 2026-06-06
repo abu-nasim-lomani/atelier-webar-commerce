@@ -10,11 +10,12 @@
 export function Lighting() {
   return (
     <>
-      {/* IBL (scene.environment) does the lighting, like model-viewer. Only a
-          gentle directional key for form + a tiny ambient floor — anything
-          stronger overexposed the sofa to white on top of the IBL. */}
-      <ambientLight intensity={0.08} />
-      <directionalLight intensity={0.25} position={[3, 5, 2]} />
+      {/* TEMP DIAGNOSTIC: plain lighting (IBL off) to reveal whether the sofa
+          texture renders at all. Grey fabric + brown legs = texture works;
+          still white = texture not applied. */}
+      <ambientLight intensity={0.5} />
+      <hemisphereLight intensity={0.3} />
+      <directionalLight intensity={0.9} position={[3, 5, 2]} />
     </>
   );
 }
