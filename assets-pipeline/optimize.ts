@@ -36,7 +36,8 @@ import { HERO_SOFA } from '../config/hero-asset';
 const SRC = path.resolve('assets-pipeline/source/scene.gltf');
 const OUT = path.resolve('public/models/hero-sofa.glb');
 const MAX_TEXTURE = 2048;
-const JPEG_QUALITY = 80;
+const NORMAL_TEXTURE = 1024;
+const JPEG_QUALITY = 90;
 const TARGET_WIDTH = HERO_SOFA.dimensionsMeters.width;
 
 function mb(bytes: number): string {
@@ -95,11 +96,22 @@ async function main(): Promise<void> {
     dedup(),
     weld(),
     prune(),
+    // Colour / ORM: JPEG is compact and fine for albedo + roughness/metal.
     textureCompress({
       encoder: sharp,
       targetFormat: 'jpeg',
-      resize: [MAX_TEXTURE, MAX_TEXTURE],
       quality: JPEG_QUALITY,
+      resize: [MAX_TEXTURE, MAX_TEXTURE],
+      slots: /baseColor|metallicRoughness|emissive|occlusion/i,
+    }),
+    // Normal map: PNG (lossless). JPEG corrupts the encoded XYZ normals, which
+    // destroys the fabric-weave / wood-grain micro-detail and makes the sofa
+    // read as flat plastic. Lossless (at 1K) keeps the surface crisp.
+    textureCompress({
+      encoder: sharp,
+      targetFormat: 'png',
+      resize: [NORMAL_TEXTURE, NORMAL_TEXTURE],
+      slots: /normal/i,
     }),
   );
 

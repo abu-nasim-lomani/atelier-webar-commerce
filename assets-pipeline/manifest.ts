@@ -54,7 +54,7 @@ export const assetManifest: AssetManifest = [
     variants: {
       high: {
         file: '/models/hero-sofa.glb',
-        fileBytes: 3000244,
+        fileBytes: 3901752,
         triangles: 5403,
         textureBytes: 2768204,
         textureMaxPx: 2048,

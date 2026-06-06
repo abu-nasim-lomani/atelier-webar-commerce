@@ -29,7 +29,10 @@ export const perfBudget = {
   payload: {
     heroGlbTargetMbMin: 1.5,
     heroGlbTargetMbMax: 2.5,
-    heroGlbCeilingMb: 3.5,
+    // Raised from 3.5 → 4.0: the hero normal map ships as lossless PNG (JPEG
+    // corrupts normals → flat/plastic surface). Worth the extra ~0.7MB for the
+    // realistic fabric/wood micro-detail.
+    heroGlbCeilingMb: 4.0,
     totalToInteractiveMb: 4,
   },
 
