@@ -24,11 +24,9 @@ import { useXRHitTest, XRDomOverlay } from '@react-three/xr';
 import * as THREE from 'three';
 import { HERO_SOFA } from '@config/hero-asset';
 import { hexToLinear, color, ar } from '@/tokens';
-import { linearColor } from '../core/colorBridge';
 import { fitToFootprint } from '../core/fitModel';
 import { isolateSofaMaterials } from '../core/isolateSofaMaterials';
 import { ensureSofaLoading, getSofaScene } from '../scene/sofaAsset';
-import { ContactShadow } from '../scene/ContactShadow';
 import { Lighting } from '../scene/Lighting';
 import { exitAr } from './xrStore';
 
@@ -46,7 +44,8 @@ const FLAT_OFFSET = new THREE.Vector3();
 const CAM_FORWARD = new THREE.Vector3();
 const CAM_RIGHT = new THREE.Vector3();
 const MIN_DISTANCE = 1.5;
-const RETICLE_LERP = 0.4;
+const RETICLE_LERP = 0.2; // lower = smoother floor tracking
+const RETICLE_COLOR = new THREE.Color(1, 1, 1); // white placement ring
 const ROTATE_STEP = Math.PI / 12; // 15° per tap
 const NUDGE_STEP = 0.1; // 10 cm per tap
 
@@ -67,6 +66,8 @@ let appliedFinish: string | null = '';
 let armedSession: XRSession | null = null;
 let hintEl: HTMLElement | null = null;
 let spinnerEl: HTMLElement | null = null;
+let adjustEl: HTMLElement | null = null;
+let placeEl: HTMLElement | null = null;
 let placedYaw = 0;
 
 // Screen tap (handheld AR 'select') drops the sofa at the circle, instantly.
@@ -220,25 +221,28 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
     if (spinnerEl !== null) {
       spinnerEl.style.display = !hasHit && !placed ? 'block' : 'none';
     }
+
+    // Swap control groups: "Place here" while aiming, adjust/rotate once placed.
+    if (adjustEl === null) adjustEl = document.getElementById('ar-adjust');
+    if (adjustEl !== null) adjustEl.style.display = placed ? 'flex' : 'none';
+    if (placeEl === null) placeEl = document.getElementById('ar-place');
+    if (placeEl !== null) placeEl.style.display = placed ? 'none' : 'flex';
   });
 
   return (
     <>
       <Lighting />
 
-      <group name="ar-anchor" visible={false}>
-        {/* Grounding shadow — strong enough to read over the live camera feed
-            (a faint shadow is the #1 reason AR objects look like they float). */}
-        <ContactShadow opacity={0.78} />
-      </group>
+      <group name="ar-anchor" visible={false} />
 
-      {/* The placement circle — shows exactly where the sofa will land. */}
+      {/* White placement ring (IKEA-style) — shows where the sofa will sit while
+          aiming, hidden once placed. No fake contact shadow (it read unreal). */}
       <mesh name="ar-reticle" visible={false} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.42, 0.5, 64]} />
+        <ringGeometry args={[0.44, 0.5, 72]} />
         <meshBasicMaterial
-          color={linearColor(color.accent)}
+          color={RETICLE_COLOR}
           transparent
-          opacity={0.9}
+          opacity={0.95}
           toneMapped={false}
         />
       </mesh>
@@ -315,10 +319,34 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
             gap: '10px',
           }}
         >
-          {/* Adjust row — nudge the sofa (viewer-relative) + rotate it. */}
+          {/* Place row (aiming) — explicit "set on the floor"; a screen tap
+              also places. Hidden once placed. */}
+          <div id="ar-place" style={{ display: 'flex', justifyContent: 'center' }}>
+            <button
+              type="button"
+              onClick={() => {
+                onSelect();
+              }}
+              style={{
+                minHeight: '52px',
+                padding: '0 32px',
+                borderRadius: '999px',
+                border: 'none',
+                backgroundColor: color.accent,
+                color: color.canvasRaised,
+                fontSize: '16px',
+                fontWeight: 500,
+              }}
+            >
+              Place on the floor
+            </button>
+          </div>
+
+          {/* Adjust row (shown once placed) — nudge the sofa + rotate it. */}
           <div
+            id="ar-adjust"
             style={{
-              display: 'flex',
+              display: 'none',
               flexWrap: 'wrap',
               justifyContent: 'center',
               gap: '8px',
@@ -384,18 +412,14 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
             >
               ↻
             </button>
-          </div>
-
-          {/* Commit row. */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
             <button
               type="button"
               onClick={() => {
                 placed = false;
               }}
               style={{
-                minHeight: '48px',
-                padding: '0 24px',
+                minHeight: '46px',
+                padding: '0 20px',
                 borderRadius: '999px',
                 border: 'none',
                 backgroundColor: ar.surface,
@@ -406,6 +430,10 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
             >
               Move
             </button>
+          </div>
+
+          {/* Done row (always). */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
             <button
               type="button"
               onClick={() => {
