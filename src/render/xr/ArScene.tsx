@@ -86,16 +86,9 @@ interface ArSceneProps {
   readonly fitLabel: string | null;
   /** Brand line baked into the view so device screenshots carry it. */
   readonly watermark: string;
-  /** Share the Decision Artifact card (app-side; AR exits first). */
-  readonly onShare: () => void;
 }
 
-export function ArScene({
-  finishHex,
-  fitLabel,
-  watermark,
-  onShare,
-}: ArSceneProps) {
+export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
   ensureSofaLoading();
 
   // Continuous floor hit-test cast from the viewer (screen centre).
@@ -242,9 +235,8 @@ export function ArScene({
       <Lighting />
 
       <group name="ar-anchor" visible={false}>
-        {/* Soft contact shadow for grounding (only visible once placed). Kept
-            light so it reads as a gentle shadow, not a hard warm disc. */}
-        <ContactShadow opacity={0.4} />
+        {/* Very faint contact shadow for grounding (only visible once placed). */}
+        <ContactShadow opacity={0.15} />
       </group>
 
       {/* White placement ring (IKEA-style) — shows where the sofa will sit while
@@ -442,25 +434,6 @@ export function ArScene({
               }}
             >
               Reset
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                exitAr();
-                onShare();
-              }}
-              style={{
-                minHeight: '46px',
-                padding: '0 20px',
-                borderRadius: '999px',
-                border: 'none',
-                backgroundColor: ar.surface,
-                color: color.ink,
-                fontSize: '15px',
-                fontWeight: 500,
-              }}
-            >
-              Share
             </button>
           </div>
 

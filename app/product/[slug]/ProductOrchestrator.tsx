@@ -362,9 +362,6 @@ export function ProductOrchestrator({
           finishHex={activeFinishHex}
           fitLabel={arFitLabel}
           watermark={arWatermark}
-          onShare={() => {
-            void handleShare();
-          }}
         />
       ) : null}
 
