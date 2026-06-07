@@ -35,9 +35,9 @@ import { HERO_SOFA } from '../config/hero-asset';
 
 const SRC = path.resolve('assets-pipeline/source/scene.gltf');
 const OUT = path.resolve('public/models/hero-sofa.glb');
-const MAX_TEXTURE = 2048;
-const NORMAL_TEXTURE = 1024;
-const JPEG_QUALITY = 90;
+const MAX_TEXTURE = 1536;
+const NORMAL_TEXTURE = 512;
+const JPEG_QUALITY = 88;
 const TARGET_WIDTH = HERO_SOFA.dimensionsMeters.width;
 
 function mb(bytes: number): string {

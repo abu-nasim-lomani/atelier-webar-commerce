@@ -81,10 +81,13 @@ const nextConfig = {
         headers: [
           { key: 'Content-Type', value: 'model/gltf-binary' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          // The model keeps the same filename across updates, so force a
-          // revalidation each load (cheap 304 when unchanged) — otherwise a
-          // stale cached GLB hides every model fix, as it did here.
-          { key: 'Cache-Control', value: 'no-cache' },
+          // Cache the model so repeat visits / AR launches are instant (the
+          // 2-min waits were re-downloading it each time). Served stale while
+          // it revalidates in the background, so updates still propagate.
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, stale-while-revalidate=604800',
+          },
         ],
       },
     ];

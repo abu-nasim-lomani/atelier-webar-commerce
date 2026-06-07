@@ -44,6 +44,7 @@ export function ArCanvas({
       }}
     >
       <Canvas
+        frameloop="demand"
         onCreated={({ gl, scene }) => {
           // Match the hero stage + Room Preview colour pipeline so the sofa
           // reads identically in AR (ACES tone map + exposure + sRGB output)
