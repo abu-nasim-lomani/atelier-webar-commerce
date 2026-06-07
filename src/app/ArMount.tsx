@@ -16,14 +16,21 @@ interface ArMountProps {
   readonly finishHex: string | null;
   readonly fitLabel: string | null;
   readonly watermark: string;
+  readonly onShare: () => void;
 }
 
 export function ArMount({
   finishHex,
   fitLabel,
   watermark,
+  onShare,
 }: ArMountProps): ReactElement {
   return (
-    <ArCanvas finishHex={finishHex} fitLabel={fitLabel} watermark={watermark} />
+    <ArCanvas
+      finishHex={finishHex}
+      fitLabel={fitLabel}
+      watermark={watermark}
+      onShare={onShare}
+    />
   );
 }

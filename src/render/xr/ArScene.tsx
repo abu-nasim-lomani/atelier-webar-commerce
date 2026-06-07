@@ -86,9 +86,16 @@ interface ArSceneProps {
   readonly fitLabel: string | null;
   /** Brand line baked into the view so device screenshots carry it. */
   readonly watermark: string;
+  /** Capture + share the branded sofa card (app-side; AR exits first). */
+  readonly onShare: () => void;
 }
 
-export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
+export function ArScene({
+  finishHex,
+  fitLabel,
+  watermark,
+  onShare,
+}: ArSceneProps) {
   ensureSofaLoading();
 
   // Continuous floor hit-test cast from the viewer (screen centre).
@@ -434,6 +441,25 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
               }}
             >
               Reset
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                exitAr();
+                onShare();
+              }}
+              style={{
+                minHeight: '46px',
+                padding: '0 20px',
+                borderRadius: '999px',
+                border: 'none',
+                backgroundColor: ar.surface,
+                color: color.ink,
+                fontSize: '15px',
+                fontWeight: 500,
+              }}
+            >
+              Share
             </button>
           </div>
 
