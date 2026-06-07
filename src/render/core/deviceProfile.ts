@@ -21,13 +21,25 @@ interface NavigatorSignals {
 function hasWebGL2(): boolean {
   try {
     const canvas = document.createElement('canvas');
-    return canvas.getContext('webgl2') !== null;
+    const ctx = canvas.getContext('webgl2');
+    if (ctx === null) return false;
+    // Release the probe context immediately. WebGL contexts are a scarce
+    // resource (~16 per page); a leaked probe per call floods the limit and
+    // evicts the real render canvas ("Too many active WebGL contexts").
+    ctx.getExtension('WEBGL_lose_context')?.loseContext();
+    return true;
   } catch {
     return false;
   }
 }
 
-export function detectTier(): DeviceTier {
+// Device signals don't change within a session, and the WebGL2 probe is not
+// free — compute the tier once and reuse it. `detectTier()` is called from
+// render bodies (RenderCanvas / RoomPreviewCanvas), which can re-run many times
+// per second during interaction; without this memo each call leaked a context.
+let cachedTier: DeviceTier | null = null;
+
+function computeTier(): DeviceTier {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') {
     return 'balanced';
   }
@@ -47,4 +59,12 @@ export function detectTier(): DeviceTier {
     return 'premium';
   }
   return 'balanced';
+}
+
+export function detectTier(): DeviceTier {
+  // Don't cache the SSR fallback — recompute on the client so the real signals
+  // (and the WebGL2 probe) decide once hydrated.
+  if (typeof window === 'undefined') return 'balanced';
+  cachedTier ??= computeTier();
+  return cachedTier;
 }
