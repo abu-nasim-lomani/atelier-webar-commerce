@@ -39,11 +39,14 @@ const SHADOW_REST_OPACITY = 0.5;
 interface RoomPreviewCanvasProps {
   readonly finishHex: string | null;
   readonly reducedMotion: boolean;
+  /** Photo-mode yaw (radians), or null for preset-room breathing. */
+  readonly yaw: number | null;
 }
 
 export function RoomPreviewCanvas({
   finishHex,
   reducedMotion,
+  yaw,
 }: RoomPreviewCanvasProps) {
   const preset = getPreset(detectTier());
 
@@ -55,6 +58,8 @@ export function RoomPreviewCanvas({
         antialias: preset.antialias,
         alpha: true,
         powerPreference: preset.powerPreference,
+        // Allow snapshotting the sofa for the "your room" composite.
+        preserveDrawingBuffer: true,
       }}
       camera={{
         fov: CAMERA_FOV,
@@ -71,7 +76,7 @@ export function RoomPreviewCanvas({
       }}
     >
       <Lighting />
-      <RoomSofa finishHex={finishHex} reducedMotion={reducedMotion} />
+      <RoomSofa finishHex={finishHex} reducedMotion={reducedMotion} yaw={yaw} />
       <ContactShadow opacity={SHADOW_REST_OPACITY} />
     </Canvas>
   );

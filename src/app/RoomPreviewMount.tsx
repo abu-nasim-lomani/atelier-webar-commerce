@@ -19,13 +19,19 @@ const RoomPreviewCanvas = dynamic(
 interface RoomPreviewMountProps {
   readonly finishHex: string | null;
   readonly reducedMotion: boolean;
+  readonly yaw: number | null;
 }
 
 export function RoomPreviewMount({
   finishHex,
   reducedMotion,
+  yaw,
 }: RoomPreviewMountProps): ReactElement {
   return (
-    <RoomPreviewCanvas finishHex={finishHex} reducedMotion={reducedMotion} />
+    <RoomPreviewCanvas
+      finishHex={finishHex}
+      reducedMotion={reducedMotion}
+      yaw={yaw}
+    />
   );
 }

@@ -1,33 +1,42 @@
 'use client';
 
 /**
- * RoomPreview — the never-a-dead-end AR fallback overlay (Phase F2).
+ * RoomPreview — "see it in a room" without AR (Phase F2) + your-own-photo
+ * styling preview (Phase G).
  *
- * When a device can't launch native AR (iOS before USDZ ships, desktop, misc),
- * "View in your room" opens this instead of hiding: the live 3D sofa over a
- * calm, warm room backdrop. Honest copy frames it as a preview, not a measuring
- * instrument — the true-scale AR path stays the premium promise.
+ * Preset mode: the live 3D sofa floats over a warm backdrop (the AR fallback).
+ * Photo mode: the buyer drops in a photo of their room and drags / scales /
+ * rotates the sofa onto it — a STYLING preview (a flat photo can't be true
+ * scale; the AR path + Fit Checker remain the honest measurement).
  *
- * Pure presentational: the 3D canvas arrives as the `stage` slot from the app
- * composition root (UI never imports the renderer). Closed → renders nothing,
- * so the canvas (and its GL context) only exists while open.
+ * Pure presentational: the 3D canvas arrives via `renderStage(yaw)` from the
+ * app (UI never imports the renderer). UI owns the photo + 2D transform + yaw.
  */
-import { useEffect, type ReactElement, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { Text } from '@/ui/primitives';
+import { cx } from '@/lib/cx';
 import styles from './RoomPreview.module.css';
 
 interface RoomPreviewProps {
   readonly open: boolean;
   readonly onClose: () => void;
   readonly productName: string;
-  /** e.g. "Oak Natural" — shown as a quiet caption. */
   readonly finishLabel?: string | undefined;
-  /** WhatsApp deep link — the preview still leads to the conversational close. */
   readonly handoffUrl: string;
   readonly handoffLabel: string;
-  /** The 3D canvas, passed by the orchestrator (boundary preserved). */
-  readonly stage?: ReactNode | undefined;
+  /** The 3D canvas for a given yaw (null = preset-room breathing). */
+  readonly renderStage: (yaw: number | null) => ReactNode;
 }
+
+const ROTATE_STEP = Math.PI / 12; // 15°
 
 export function RoomPreview({
   open,
@@ -36,8 +45,16 @@ export function RoomPreview({
   finishLabel,
   handoffUrl,
   handoffLabel,
-  stage,
+  renderStage,
 }: RoomPreviewProps): ReactElement | null {
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [tx, setTx] = useState(0);
+  const [ty, setTy] = useState(0);
+  const [scale, setScale] = useState(1);
+  const [yaw, setYaw] = useState(0);
+  const dragFrom = useRef<{ x: number; y: number } | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent): void => {
@@ -52,7 +69,51 @@ export function RoomPreview({
     };
   }, [open, onClose]);
 
+  // Release the object URL when it changes or the overlay unmounts.
+  useEffect(() => {
+    return () => {
+      if (photoUrl !== null) URL.revokeObjectURL(photoUrl);
+    };
+  }, [photoUrl]);
+
   if (!open) return null;
+
+  const photoMode = photoUrl !== null;
+
+  const resetTransform = (): void => {
+    setTx(0);
+    setTy(0);
+    setScale(1);
+    setYaw(0);
+  };
+
+  const onPick = (e: ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0];
+    if (file === undefined) return;
+    setPhotoUrl((old) => {
+      if (old !== null) URL.revokeObjectURL(old);
+      return URL.createObjectURL(file);
+    });
+    resetTransform();
+  };
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    if (!photoMode) return;
+    dragFrom.current = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
+    const from = dragFrom.current;
+    if (from === null) return;
+    const dx = e.clientX - from.x;
+    const dy = e.clientY - from.y;
+    setTx((v) => v + dx);
+    setTy((v) => v + dy);
+    dragFrom.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (): void => {
+    dragFrom.current = null;
+  };
 
   return (
     <div
@@ -63,7 +124,7 @@ export function RoomPreview({
     >
       <div className={styles.header}>
         <Text variant="overline" tone="inkMuted">
-          Room preview
+          {photoMode ? 'Your room' : 'Room preview'}
         </Text>
         <button
           type="button"
@@ -75,25 +136,101 @@ export function RoomPreview({
         </button>
       </div>
 
-      {/* The live 3D sofa floats over the warm backdrop. Decorative for a11y. */}
-      <div className={styles.stage} aria-hidden="true">
-        {stage}
+      <div className={photoMode ? styles.stagePhoto : styles.stage}>
+        {photoMode ? (
+          <img className={styles.photo} src={photoUrl} alt="" />
+        ) : null}
+        <div
+          className={cx(styles.sofaLayer, photoMode && styles.sofaLayerDrag)}
+          style={{
+            transform: `translate(${String(tx)}px, ${String(ty)}px) scale(${String(scale)})`,
+          }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        >
+          {renderStage(photoMode ? yaw : null)}
+        </div>
       </div>
+
+      {photoMode ? (
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={styles.iconBtn}
+            aria-label="Rotate left"
+            onClick={() => {
+              setYaw((y) => y + ROTATE_STEP);
+            }}
+          >
+            ↺
+          </button>
+          <input
+            className={styles.slider}
+            type="range"
+            min={0.4}
+            max={2.5}
+            step={0.05}
+            value={scale}
+            aria-label="Size"
+            onChange={(e) => {
+              setScale(Number(e.target.value));
+            }}
+          />
+          <button
+            type="button"
+            className={styles.iconBtn}
+            aria-label="Rotate right"
+            onClick={() => {
+              setYaw((y) => y - ROTATE_STEP);
+            }}
+          >
+            ↻
+          </button>
+          <button
+            type="button"
+            className={styles.textBtn}
+            onClick={resetTransform}
+          >
+            Reset
+          </button>
+        </div>
+      ) : null}
 
       <div className={styles.footer}>
         <Text variant="caption" tone="inkMuted">
-          {finishLabel !== undefined
-            ? `Shown true-to-scale in ${finishLabel}. Your room and light will differ — open it in AR on a supported phone to place it exactly.`
-            : 'Shown true-to-scale. Your room and light will differ — open it in AR on a supported phone to place it exactly.'}
+          {photoMode
+            ? 'Drag to position, slider to size, ↺ ↻ to rotate. A styling preview — open it in AR for true scale.'
+            : finishLabel !== undefined
+              ? `Shown true-to-scale in ${finishLabel}. Or place it on a photo of your own room.`
+              : 'Shown true-to-scale. Or place it on a photo of your own room.'}
         </Text>
-        <a
-          href={handoffUrl}
-          className={styles.cta}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {handoffLabel}
-        </a>
+
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={onPick}
+        />
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.secondary}
+            onClick={() => fileInput.current?.click()}
+          >
+            {photoMode ? 'Use a different photo' : 'Use your room photo'}
+          </button>
+          <a
+            href={handoffUrl}
+            className={styles.cta}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {handoffLabel}
+          </a>
+        </div>
       </div>
     </div>
   );

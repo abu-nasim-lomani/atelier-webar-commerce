@@ -68,6 +68,130 @@
   pointer-events: none;
 }
 
+/* Photo mode: the buyer's room fills the stage; the sofa floats over it as a
+   draggable layer. No backdrop gradient — the photo IS the backdrop. */
+.stagePhoto {
+  position: relative;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow: hidden;
+  background-color: var(--color-canvas-sunk);
+}
+
+.stagePhoto canvas {
+  pointer-events: none;
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* The 3D sofa layer. In photo mode it receives pointer drags (the canvas
+   inside stays pointer-events:none, so events land on this wrapper). */
+.sofaLayer {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+.sofaLayerDrag {
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.sofaLayerDrag:active {
+  cursor: grabbing;
+}
+
+/* Placement controls (rotate / size / reset) — a calm pill bar above the
+   footer, only in photo mode. */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-s4);
+  padding: var(--space-s4) var(--space-s5);
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--touch-min);
+  block-size: var(--touch-min);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-r-pill);
+  background-color: var(--color-canvas-raised);
+  color: var(--color-ink);
+  font-size: var(--type-body-size);
+  cursor: pointer;
+  transition: transform var(--duration-instant) var(--ease-response);
+}
+
+.iconBtn:active {
+  transform: scale(0.94);
+}
+
+.slider {
+  flex: 1 1 auto;
+  max-inline-size: 12rem;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.textBtn {
+  min-block-size: var(--touch-min);
+  padding: 0 var(--space-s4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-r-pill);
+  background-color: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--type-caption-size);
+  cursor: pointer;
+}
+
+.textBtn:active {
+  background-color: var(--color-canvas-sunk);
+}
+
+/* Footer action row: a quiet "use your photo" secondary beside the CTA. */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-s4);
+}
+
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--touch-primary);
+  padding: 0 var(--space-s5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-r-md);
+  background-color: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-text);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--type-body-size);
+  cursor: pointer;
+  transition:
+    transform var(--duration-instant) var(--ease-response),
+    background-color var(--duration-micro) var(--ease-calm);
+}
+
+.secondary:active {
+  background-color: var(--color-canvas-sunk);
+  transform: scale(0.98);
+}
+
 .footer {
   display: flex;
   flex-direction: column;

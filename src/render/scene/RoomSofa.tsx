@@ -32,6 +32,11 @@ interface RoomSofaProps {
   readonly finishHex: string | null;
   /** Hold the breathing still when the user prefers reduced motion. */
   readonly reducedMotion: boolean;
+  /**
+   * Fixed yaw (radians) for photo mode — the user rotates the sofa to match
+   * their room photo. `null` = preset-room mode (gentle breathing instead).
+   */
+  readonly yaw: number | null;
 }
 
 function linearFromHex(hex: string): THREE.Color {
@@ -44,7 +49,7 @@ function linearFromHex(hex: string): THREE.Color {
   );
 }
 
-export function RoomSofa({ finishHex, reducedMotion }: RoomSofaProps) {
+export function RoomSofa({ finishHex, reducedMotion, yaw }: RoomSofaProps) {
   ensureSofaLoading();
 
   useFrame((state) => {
@@ -78,11 +83,16 @@ export function RoomSofa({ finishHex, reducedMotion }: RoomSofaProps) {
       }
     }
 
-    // Gentle breathing — the only motion (no spin, no parallax).
-    anchor.rotation.y = reducedMotion
-      ? 0
-      : Math.sin((state.clock.elapsedTime * 2 * Math.PI) / BREATHE_PERIOD_S) *
-        BREATHE_AMPLITUDE_RAD;
+    if (yaw !== null) {
+      // Photo mode: hold the user's chosen rotation (no breathing).
+      anchor.rotation.y = yaw;
+    } else {
+      // Preset-room mode: gentle breathing (no spin, no parallax).
+      anchor.rotation.y = reducedMotion
+        ? 0
+        : Math.sin((state.clock.elapsedTime * 2 * Math.PI) / BREATHE_PERIOD_S) *
+          BREATHE_AMPLITUDE_RAD;
+    }
   });
 
   return <group name="room-anchor" />;

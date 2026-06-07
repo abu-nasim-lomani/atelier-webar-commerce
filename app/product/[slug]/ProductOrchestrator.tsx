@@ -377,14 +377,13 @@ export function ProductOrchestrator({
         finishLabel={selectedFinish !== null ? selectedFinish.label : undefined}
         handoffUrl={handoffUrl}
         handoffLabel="Order on WhatsApp"
-        stage={
-          selectedFinish !== null ? (
-            <RoomPreviewMount
-              finishHex={activeFinishHex}
-              reducedMotion={reducedMotion}
-            />
-          ) : undefined
-        }
+        renderStage={(yaw) => (
+          <RoomPreviewMount
+            finishHex={activeFinishHex}
+            reducedMotion={reducedMotion}
+            yaw={yaw}
+          />
+        )}
       />
     </>
   );
