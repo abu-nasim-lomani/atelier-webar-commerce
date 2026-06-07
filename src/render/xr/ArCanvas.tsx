@@ -21,9 +21,15 @@ interface ArCanvasProps {
   readonly finishHex: string | null;
   readonly fitLabel: string | null;
   readonly watermark: string;
+  readonly onShare: () => void;
 }
 
-export function ArCanvas({ finishHex, fitLabel, watermark }: ArCanvasProps) {
+export function ArCanvas({
+  finishHex,
+  fitLabel,
+  watermark,
+  onShare,
+}: ArCanvasProps) {
   return (
     <div
       aria-hidden="true"
@@ -53,6 +59,7 @@ export function ArCanvas({ finishHex, fitLabel, watermark }: ArCanvasProps) {
             finishHex={finishHex}
             fitLabel={fitLabel}
             watermark={watermark}
+            onShare={onShare}
           />
         </XR>
       </Canvas>

@@ -27,6 +27,7 @@ import { hexToLinear, color, ar } from '@/tokens';
 import { fitToFootprint } from '../core/fitModel';
 import { isolateSofaMaterials } from '../core/isolateSofaMaterials';
 import { ensureSofaLoading, getSofaScene } from '../scene/sofaAsset';
+import { ContactShadow } from '../scene/ContactShadow';
 import { Lighting } from '../scene/Lighting';
 import { exitAr } from './xrStore';
 
@@ -85,9 +86,16 @@ interface ArSceneProps {
   readonly fitLabel: string | null;
   /** Brand line baked into the view so device screenshots carry it. */
   readonly watermark: string;
+  /** Share the Decision Artifact card (app-side; AR exits first). */
+  readonly onShare: () => void;
 }
 
-export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
+export function ArScene({
+  finishHex,
+  fitLabel,
+  watermark,
+  onShare,
+}: ArSceneProps) {
   ensureSofaLoading();
 
   // Continuous floor hit-test cast from the viewer (screen centre).
@@ -233,7 +241,11 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
     <>
       <Lighting />
 
-      <group name="ar-anchor" visible={false} />
+      <group name="ar-anchor" visible={false}>
+        {/* Soft contact shadow for grounding (only visible once placed). Kept
+            light so it reads as a gentle shadow, not a hard warm disc. */}
+        <ContactShadow opacity={0.4} />
+      </group>
 
       {/* White placement ring (IKEA-style) — shows where the sofa will sit while
           aiming, hidden once placed. No fake contact shadow (it read unreal). */}
@@ -416,6 +428,7 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
               type="button"
               onClick={() => {
                 placed = false;
+                placedYaw = 0;
               }}
               style={{
                 minHeight: '46px',
@@ -428,7 +441,26 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
                 fontWeight: 500,
               }}
             >
-              Move
+              Reset
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                exitAr();
+                onShare();
+              }}
+              style={{
+                minHeight: '46px',
+                padding: '0 20px',
+                borderRadius: '999px',
+                border: 'none',
+                backgroundColor: ar.surface,
+                color: color.ink,
+                fontSize: '15px',
+                fontWeight: 500,
+              }}
+            >
+              Share
             </button>
           </div>
 
