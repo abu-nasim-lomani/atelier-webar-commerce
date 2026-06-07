@@ -41,9 +41,25 @@ const FRAMED_POSITION = new THREE.Vector3();
 const PLACED_POSITION = new THREE.Vector3();
 const CAM_POSITION = new THREE.Vector3();
 const FLAT_OFFSET = new THREE.Vector3();
+// Camera-relative floor axes, refreshed each frame so the nudge buttons move
+// the sofa "forward/back/left/right" from the VIEWER's point of view.
+const CAM_FORWARD = new THREE.Vector3();
+const CAM_RIGHT = new THREE.Vector3();
 const MIN_DISTANCE = 1.5;
 const RETICLE_LERP = 0.4;
 const ROTATE_STEP = Math.PI / 12; // 15° per tap
+const NUDGE_STEP = 0.1; // 10 cm per tap
+
+// Shared style for the round icon controls (nudge / rotate).
+const ICON_BTN = {
+  width: '46px',
+  height: '46px',
+  borderRadius: '999px',
+  border: 'none',
+  backgroundColor: ar.surface,
+  color: color.ink,
+  fontSize: '20px',
+};
 
 let hasHit = false;
 let placed = false;
@@ -94,6 +110,13 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
       placedYaw = 0;
       session.addEventListener('select', onSelect);
     }
+
+    // Refresh camera-relative floor axes for the nudge buttons.
+    state.camera.getWorldDirection(CAM_FORWARD);
+    CAM_FORWARD.y = 0;
+    if (CAM_FORWARD.lengthSq() > 1e-6) CAM_FORWARD.normalize();
+    // Viewer's right = forward × up (on the floor plane).
+    CAM_RIGHT.set(-CAM_FORWARD.z, 0, CAM_FORWARD.x);
 
     const anchor = state.scene.getObjectByName('ar-anchor');
     const reticle = state.scene.getObjectByName('ar-reticle');
@@ -285,84 +308,123 @@ export function ArScene({ finishHex, fitLabel, watermark }: ArSceneProps) {
           style={{
             position: 'absolute',
             insetInline: 0,
-            insetBlockEnd: '28px',
+            insetBlockEnd: 'calc(24px + env(safe-area-inset-bottom, 0px))',
             display: 'flex',
-            justifyContent: 'center',
-            gap: '12px',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '10px',
           }}
         >
-          <button
-            type="button"
-            aria-label="Rotate left"
-            onClick={() => {
-              placedYaw += ROTATE_STEP;
-            }}
+          {/* Adjust row — nudge the sofa (viewer-relative) + rotate it. */}
+          <div
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '999px',
-              border: 'none',
-              backgroundColor: ar.surface,
-              color: color.ink,
-              fontSize: '22px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: '8px',
             }}
           >
-            ↺
-          </button>
-          <button
-            type="button"
-            aria-label="Rotate right"
-            onClick={() => {
-              placedYaw -= ROTATE_STEP;
-            }}
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '999px',
-              border: 'none',
-              backgroundColor: ar.surface,
-              color: color.ink,
-              fontSize: '22px',
-            }}
-          >
-            ↻
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              placed = false;
-            }}
-            style={{
-              minHeight: '48px',
-              padding: '0 24px',
-              borderRadius: '999px',
-              border: 'none',
-              backgroundColor: ar.surface,
-              color: color.ink,
-              fontSize: '15px',
-              fontWeight: 500,
-            }}
-          >
-            Move
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              exitAr();
-            }}
-            style={{
-              minHeight: '48px',
-              padding: '0 28px',
-              borderRadius: '999px',
-              border: 'none',
-              backgroundColor: color.accent,
-              color: color.canvasRaised,
-              fontSize: '15px',
-              fontWeight: 500,
-            }}
-          >
-            Done
-          </button>
+            <button
+              type="button"
+              aria-label="Move left"
+              onClick={() => {
+                PLACED_POSITION.addScaledVector(CAM_RIGHT, -NUDGE_STEP);
+              }}
+              style={ICON_BTN}
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              aria-label="Move forward"
+              onClick={() => {
+                PLACED_POSITION.addScaledVector(CAM_FORWARD, NUDGE_STEP);
+              }}
+              style={ICON_BTN}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              aria-label="Move back"
+              onClick={() => {
+                PLACED_POSITION.addScaledVector(CAM_FORWARD, -NUDGE_STEP);
+              }}
+              style={ICON_BTN}
+            >
+              ↓
+            </button>
+            <button
+              type="button"
+              aria-label="Move right"
+              onClick={() => {
+                PLACED_POSITION.addScaledVector(CAM_RIGHT, NUDGE_STEP);
+              }}
+              style={ICON_BTN}
+            >
+              →
+            </button>
+            <button
+              type="button"
+              aria-label="Rotate left"
+              onClick={() => {
+                placedYaw += ROTATE_STEP;
+              }}
+              style={ICON_BTN}
+            >
+              ↺
+            </button>
+            <button
+              type="button"
+              aria-label="Rotate right"
+              onClick={() => {
+                placedYaw -= ROTATE_STEP;
+              }}
+              style={ICON_BTN}
+            >
+              ↻
+            </button>
+          </div>
+
+          {/* Commit row. */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                placed = false;
+              }}
+              style={{
+                minHeight: '48px',
+                padding: '0 24px',
+                borderRadius: '999px',
+                border: 'none',
+                backgroundColor: ar.surface,
+                color: color.ink,
+                fontSize: '15px',
+                fontWeight: 500,
+              }}
+            >
+              Move
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                exitAr();
+              }}
+              style={{
+                minHeight: '48px',
+                padding: '0 28px',
+                borderRadius: '999px',
+                border: 'none',
+                backgroundColor: color.accent,
+                color: color.canvasRaised,
+                fontSize: '15px',
+                fontWeight: 500,
+              }}
+            >
+              Done
+            </button>
+          </div>
         </div>
       </XRDomOverlay>
     </>
