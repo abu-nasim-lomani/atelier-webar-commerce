@@ -69,10 +69,14 @@
 }
 
 /* Photo mode: the buyer's room fills the stage; the sofa floats over it as a
-   draggable layer. No backdrop gradient — the photo IS the backdrop. */
+   draggable layer. No backdrop gradient — the photo IS the backdrop. Capped to
+   a phone-like column and centred so a portrait room photo isn't stretched
+   across an ultra-wide desktop viewport (mirrors the phone's framing). */
 .stagePhoto {
   position: relative;
   flex: 1 1 auto;
+  align-self: center;
+  inline-size: min(100%, 26rem);
   min-block-size: 0;
   overflow: hidden;
   background-color: var(--color-canvas-sunk);
