@@ -77,7 +77,10 @@ export function RoomPreviewCanvas({
     >
       <Lighting />
       <RoomSofa finishHex={finishHex} reducedMotion={reducedMotion} yaw={yaw} />
-      <ContactShadow opacity={SHADOW_REST_OPACITY} />
+      {/* The grounded shadow plane only reads as real over the preset backdrop.
+          In photo mode the 3D floor doesn't match the buyer's photo, so the
+          ellipse floats — drop it there (yaw !== null = photo mode). */}
+      {yaw === null ? <ContactShadow opacity={SHADOW_REST_OPACITY} /> : null}
     </Canvas>
   );
 }
