@@ -76,10 +76,20 @@
   position: relative;
   flex: 1 1 auto;
   align-self: center;
-  inline-size: min(100%, 26rem);
+  inline-size: min(100%, 34rem);
   min-block-size: 0;
+  margin-block: var(--space-s4);
   overflow: hidden;
+  border-radius: var(--radius-r-lg);
   background-color: var(--color-canvas-sunk);
+  box-shadow: var(--elevation-e2);
+}
+
+@media (width >= 768px) {
+  .stagePhoto {
+    inline-size: min(100%, 38rem);
+    margin-block: var(--space-s5);
+  }
 }
 
 .stagePhoto canvas {
