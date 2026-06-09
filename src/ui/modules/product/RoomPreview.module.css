@@ -206,6 +206,7 @@
   justify-content: center;
   min-block-size: var(--touch-primary);
   padding: 0 var(--space-s6);
+  border: none;
   border-radius: var(--radius-r-md);
   background-color: var(--color-accent);
   color: var(--color-canvas-raised);
@@ -215,6 +216,7 @@
   line-height: var(--type-body-lh);
   letter-spacing: var(--type-body-tracking);
   text-decoration: none;
+  cursor: pointer;
   transition:
     transform var(--duration-instant) var(--ease-response),
     background-color var(--duration-micro) var(--ease-calm);
@@ -223,6 +225,11 @@
 .cta:active {
   background-color: var(--color-accent-press);
   transform: scale(0.98);
+}
+
+.cta:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 @keyframes room-fade {

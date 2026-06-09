@@ -374,6 +374,7 @@ export function ProductOrchestrator({
           setRoomPreviewOpen(false);
         }}
         productName={product.name}
+        brand={SITE.name}
         finishLabel={selectedFinish !== null ? selectedFinish.label : undefined}
         handoffUrl={handoffUrl}
         handoffLabel="Order on WhatsApp"

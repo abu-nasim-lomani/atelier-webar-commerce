@@ -23,12 +23,15 @@ import {
 } from 'react';
 import { Text } from '@/ui/primitives';
 import { cx } from '@/lib/cx';
+import { composeRoomShot } from './roomShot';
 import styles from './RoomPreview.module.css';
 
 interface RoomPreviewProps {
   readonly open: boolean;
   readonly onClose: () => void;
   readonly productName: string;
+  /** Brand wordmark stamped onto the shared room shot. */
+  readonly brand: string;
   readonly finishLabel?: string | undefined;
   readonly handoffUrl: string;
   readonly handoffLabel: string;
@@ -42,6 +45,7 @@ export function RoomPreview({
   open,
   onClose,
   productName,
+  brand,
   finishLabel,
   handoffUrl,
   handoffLabel,
@@ -52,8 +56,10 @@ export function RoomPreview({
   const [ty, setTy] = useState(0);
   const [scale, setScale] = useState(1);
   const [yaw, setYaw] = useState(0);
+  const [capturing, setCapturing] = useState(false);
   const dragFrom = useRef<{ x: number; y: number } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -115,6 +121,51 @@ export function RoomPreview({
     dragFrom.current = null;
   };
 
+  const onShareRoom = async (): Promise<void> => {
+    const stage = stageRef.current;
+    if (stage === null || capturing) return;
+    const sofa = stage.querySelector('canvas');
+    const photo = stage.querySelector('img');
+    if (sofa === null || photo === null) return;
+
+    setCapturing(true);
+    try {
+      const rect = stage.getBoundingClientRect();
+      const blob = await composeRoomShot({
+        photo,
+        sofa,
+        tx,
+        ty,
+        scale,
+        width: rect.width,
+        height: rect.height,
+        brand,
+        productName,
+      });
+      if (blob === null) return;
+
+      const file = new File([blob], 'atelier-room.png', { type: 'image/png' });
+      const shareData = { files: [file], title: productName };
+      if (
+        typeof navigator.canShare === 'function' &&
+        navigator.canShare(shareData)
+      ) {
+        await navigator.share(shareData);
+      } else {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'atelier-room.png';
+        anchor.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      // Share dismissed or unavailable — stay calm, no error surface.
+    } finally {
+      setCapturing(false);
+    }
+  };
+
   return (
     <div
       className={styles.layer}
@@ -136,7 +187,10 @@ export function RoomPreview({
         </button>
       </div>
 
-      <div className={photoMode ? styles.stagePhoto : styles.stage}>
+      <div
+        ref={stageRef}
+        className={photoMode ? styles.stagePhoto : styles.stage}
+      >
         {photoMode ? (
           <img className={styles.photo} src={photoUrl} alt="" />
         ) : null}
@@ -222,14 +276,27 @@ export function RoomPreview({
           >
             {photoMode ? 'Use a different photo' : 'Use your room photo'}
           </button>
-          <a
-            href={handoffUrl}
-            className={styles.cta}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {handoffLabel}
-          </a>
+          {photoMode ? (
+            <button
+              type="button"
+              className={styles.cta}
+              disabled={capturing}
+              onClick={() => {
+                void onShareRoom();
+              }}
+            >
+              {capturing ? 'Preparing…' : 'Save & share'}
+            </button>
+          ) : (
+            <a
+              href={handoffUrl}
+              className={styles.cta}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {handoffLabel}
+            </a>
+          )}
         </div>
       </div>
     </div>
